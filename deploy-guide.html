@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>배포 가이드 - 보험사 시책 계산기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+        * { font-family: 'Noto Sans KR', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
+        code { font-family: 'Courier New', monospace; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <header class="gradient-bg text-white py-8">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl font-black mb-2">🚀 배포 가이드</h1>
+            <p class="text-lg opacity-90">보험사 시책 계산기를 온라인에 공유하는 방법</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-12 max-w-4xl">
+        
+        <!-- 방법 선택 -->
+        <section class="mb-12">
+            <h2 class="text-3xl font-bold mb-6">📊 배포 방법 비교</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-lg border-4 border-green-400">
+                    <h3 class="text-xl font-bold text-green-600 mb-3">✅ GitHub Pages</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li>✓ 완전 무료</li>
+                        <li>✓ 자동 배포</li>
+                        <li>✓ 버전 관리</li>
+                        <li>✓ 무제한 방문자</li>
+                    </ul>
+                    <p class="mt-4 text-xs text-gray-600"><strong>추천:</strong> 가장 추천!</p>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold text-blue-600 mb-3">🚀 Cloudflare Pages</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li>✓ 무료</li>
+                        <li>✓ 초고속</li>
+                        <li>✓ CDN 자동</li>
+                        <li>✓ GitHub 연동</li>
+                    </ul>
+                    <p class="mt-4 text-xs text-gray-600"><strong>추천:</strong> 속도 중시</p>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold text-purple-600 mb-3">⚡ Netlify</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li>✓ 무료</li>
+                        <li>✓ 드래그 앤 드롭</li>
+                        <li>✓ 자동 HTTPS</li>
+                        <li>✓ 쉬운 설정</li>
+                    </ul>
+                    <p class="mt-4 text-xs text-gray-600"><strong>추천:</strong> 초보자</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- GitHub Pages 상세 가이드 -->
+        <section class="mb-12">
+            <div class="bg-white p-8 rounded-2xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-6 text-purple-600">🎯 추천: GitHub Pages로 배포하기</h2>
+                
+                <div class="space-y-8">
+                    <!-- 1단계 -->
+                    <div>
+                        <h3 class="text-xl font-bold mb-3 flex items-center">
+                            <span class="bg-purple-500 text-white w-8 h-8 rounded-full flex items-center justify-center mr-3">1</span>
+                            GitHub 계정 생성
+                        </h3>
+                        <ol class="ml-11 space-y-2 text-gray-700">
+                            <li>1. <a href="https://github.com" target="_blank" class="text-blue-600 underline">github.com</a> 방문</li>
+                            <li>2. "Sign up" 클릭하여 무료 계정 생성</li>
+                            <li>3. 이메일 인증 완료</li>
+                        </ol>
+                    </div>
+
+                    <!-- 2단계 -->
+                    <div>
+                        <h3 class="text-xl font-bold mb-3 flex items-center">
+                            <span class="bg-purple-500 text-white w-8 h-8 rounded-full flex items-center justify-center mr-3">2</span>
+                            새 저장소 만들기
+                        </h3>
+                        <ol class="ml-11 space-y-2 text-gray-700 mb-4">
+                            <li>1. GitHub에 로그인 후 우측 상단 "+" → "New repository" 클릭</li>
+                            <li>2. Repository name: <code class="bg-gray-100 px-2 py-1 rounded">insurance-calculator</code> (원하는 이름)</li>
+                            <li>3. Public 선택 (무료 배포를 위해 필수)</li>
+                            <li>4. "Create repository" 클릭</li>
+                        </ol>
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                            <p class="text-sm text-yellow-800">
+                                💡 <strong>Tip:</strong> Repository 이름이 URL에 포함됩니다<br>
+                                예: <code>https://yourusername.github.io/insurance-calculator/</code>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 3단계 -->
+                    <div>
+                        <h3 class="text-xl font-bold mb-3 flex items-center">
+                            <span class="bg-purple-500 text-white w-8 h-8 rounded-full flex items-center justify-center mr-3">3</span>
+                            파일 업로드 (웹 인터페이스 사용)
+                        </h3>
+                        <div class="ml-11 space-y-4">
+                            <p class="text-gray-700 mb-3">가장 쉬운 방법 (Git 명령어 불필요):</p>
+                            <ol class="space-y-2 text-gray-700">
+                                <li>1. 생성된 저장소 페이지에서 "uploading an existing file" 클릭</li>
+                                <li>2. <code class="bg-gray-100 px-2 py-1 rounded">보험사_시책_계산기_A4가로_최종 (7).html</code> 파일을 드래그 앤 드롭</li>
+                                <li>3. 파일 이름을 <code class="bg-gray-100 px-2 py-1 rounded">index.html</code>로 변경</li>
+                                <li>4. 아래 "Commit changes" 클릭</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- 4단계 -->
+                    <div>
+                        <h3 class="text-xl font-bold mb-3 flex items-center">
+                            <span class="bg-purple-500 text-white w-8 h-8 rounded-full flex items-center justify-center mr-3">4</span>
+                            GitHub Pages 활성화
+                        </h3>
+                        <ol class="ml-11 space-y-2 text-gray-700">
+                            <li>1. 저장소 페이지 상단 "Settings" 클릭</li>
+                            <li>2. 왼쪽 메뉴에서 "Pages" 클릭</li>
+                            <li>3. Source: "Deploy from a branch" 선택</li>
+                            <li>4. Branch: "main" 선택, folder: "/ (root)" 선택</li>
+                            <li>5. "Save" 클릭</li>
+                            <li>6. 1-2분 대기 후 페이지 새로고침</li>
+                            <li>7. 상단에 표시되는 URL이 공유 링크입니다!</li>
+                        </ol>
+                        <div class="mt-4 bg-green-50 border-l-4 border-green-400 p-4">
+                            <p class="text-sm text-green-800">
+                                ✅ <strong>완료!</strong> 이제 URL을 팀원들에게 공유하세요<br>
+                                예: <code>https://yourusername.github.io/insurance-calculator/</code>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Git 명령어 방법 (고급 사용자) -->
+        <section class="mb-12">
+            <div class="bg-gray-900 text-white p-8 rounded-2xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-4">💻 고급 사용자: Git 명령어로 배포</h2>
+                <p class="text-gray-300 mb-6">터미널/명령 프롬프트에서 실행:</p>
+                
+                <h3 class="text-lg font-bold mb-2 text-yellow-400">초기 설정 (최초 1회)</h3>
+                <pre>
+# Git 초기화
+git init
+
+# 파일 추가
+git add index.html README.md .gitignore
+
+# 첫 커밋
+git commit -m "Initial commit: 보험사 시책 계산기"
+
+# GitHub 저장소 연결 (YOUR_USERNAME와 YOUR_REPO를 실제 값으로 변경)
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
+
+# 메인 브랜치로 푸시
+git branch -M main
+git push -u origin main</pre>
+
+                <h3 class="text-lg font-bold mb-2 mt-6 text-yellow-400">매주/매달 업데이트</h3>
+                <pre>
+# 수정된 파일 저장
+git add index.html
+
+# 커밋 메시지 작성
+git commit -m "2026년 1월 2주차 데이터 업데이트"
+
+# GitHub에 푸시 (자동 배포)
+git push</pre>
+                
+                <div class="mt-4 bg-blue-900 bg-opacity-50 p-4 rounded">
+                    <p class="text-sm text-blue-200">
+                        💡 <strong>자동 배포:</strong> push 후 1-2분이면 웹사이트에 반영됩니다!
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 업데이트 워크플로우 -->
+        <section class="mb-12">
+            <div class="bg-white p-8 rounded-2xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-6 text-purple-600">🔄 매주/매달 데이터 업데이트 방법</h2>
+                
+                <div class="space-y-6">
+                    <div class="bg-blue-50 p-6 rounded-xl">
+                        <h3 class="text-lg font-bold mb-3 text-blue-800">방법 1: 웹에서 직접 수정 (추천)</h3>
+                        <ol class="space-y-2 text-gray-700">
+                            <li>1. 배포된 웹사이트에서 "⚙️ 관리자 페이지" 클릭</li>
+                            <li>2. 비밀번호 입력 (기본: admin1234)</li>
+                            <li>3. **인별 데이터 관리** 탭에서 엑셀 데이터 붙여넣기</li>
+                            <li>4. "💾 전체 저장" 클릭</li>
+                            <li>5. 브라우저 localStorage에 자동 저장됨 ✅</li>
+                        </ol>
+                        <div class="mt-3 text-sm text-blue-700">
+                            <strong>장점:</strong> 코드 수정 없이 데이터만 업데이트 가능!
+                        </div>
+                    </div>
+                    
+                    <div class="bg-purple-50 p-6 rounded-xl">
+                        <h3 class="text-lg font-bold mb-3 text-purple-800">방법 2: GitHub에서 파일 수정</h3>
+                        <ol class="space-y-2 text-gray-700">
+                            <li>1. GitHub 저장소 페이지에서 <code>index.html</code> 클릭</li>
+                            <li>2. 연필 아이콘 (Edit) 클릭</li>
+                            <li>3. JavaScript 데이터 섹션 찾아서 수정</li>
+                            <li>4. "Commit changes" 클릭</li>
+                            <li>5. 1-2분 후 자동 배포 완료 ✅</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 데이터 백업 -->
+        <section class="mb-12">
+            <div class="bg-yellow-50 border-2 border-yellow-300 p-6 rounded-xl">
+                <h2 class="text-2xl font-bold mb-4 text-yellow-800">⚠️ 중요: 데이터 백업</h2>
+                <p class="text-gray-700 mb-4">
+                    브라우저 localStorage는 브라우저를 삭제하거나 캐시를 지우면 사라질 수 있습니다!
+                </p>
+                <div class="bg-white p-4 rounded">
+                    <h3 class="font-bold mb-2">정기적으로 백업하세요:</h3>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                        <li>1. 관리자 페이지 → "📥 시책 데이터 다운로드"</li>
+                        <li>2. 관리자 페이지 → "📥 인별 데이터 다운로드"</li>
+                        <li>3. JSON 파일을 안전한 곳에 보관</li>
+                        <li>4. 필요시 "📤 데이터 불러오기"로 복원</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section class="mb-12">
+            <div class="bg-white p-8 rounded-2xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-6 text-purple-600">❓ 자주 묻는 질문 (FAQ)</h2>
+                
+                <div class="space-y-4">
+                    <details class="bg-gray-50 p-4 rounded-lg">
+                        <summary class="font-bold cursor-pointer">Q. 배포 비용이 얼마나 드나요?</summary>
+                        <p class="mt-2 text-gray-700">A. 완전 무료입니다! GitHub Pages, Cloudflare Pages, Netlify 모두 무료 플랜으로 충분합니다.</p>
+                    </details>
+                    
+                    <details class="bg-gray-50 p-4 rounded-lg">
+                        <summary class="font-bold cursor-pointer">Q. 동시 접속자 제한이 있나요?</summary>
+                        <p class="mt-2 text-gray-700">A. GitHub Pages는 무제한 방문자를 지원합니다. 회사 전체가 사용해도 문제없습니다.</p>
+                    </details>
+                    
+                    <details class="bg-gray-50 p-4 rounded-lg">
+                        <summary class="font-bold cursor-pointer">Q. 업데이트 후 얼마나 빨리 반영되나요?</summary>
+                        <p class="mt-2 text-gray-700">A. GitHub에 push 후 보통 1-2분 이내에 자동으로 배포됩니다.</p>
+                    </details>
+                    
+                    <details class="bg-gray-50 p-4 rounded-lg">
+                        <summary class="font-bold cursor-pointer">Q. 도메인을 변경할 수 있나요?</summary>
+                        <p class="mt-2 text-gray-700">A. 네! GitHub Pages Settings에서 Custom domain을 설정할 수 있습니다. (예: calculator.yourcompany.com)</p>
+                    </details>
+                    
+                    <details class="bg-gray-50 p-4 rounded-lg">
+                        <summary class="font-bold cursor-pointer">Q. 데이터가 안전한가요?</summary>
+                        <p class="mt-2 text-gray-700">A. 데이터는 각 사용자의 브라우저 localStorage에 저장됩니다. 서버에는 전송되지 않으므로 안전합니다. 단, 정기적으로 백업하세요!</p>
+                    </details>
+                    
+                    <details class="bg-gray-50 p-4 rounded-lg">
+                        <summary class="font-bold cursor-pointer">Q. Git을 몰라도 사용할 수 있나요?</summary>
+                        <p class="mt-2 text-gray-700">A. 네! GitHub 웹 인터페이스에서 드래그 앤 드롭으로 파일을 업로드하고, 관리자 페이지에서 데이터를 수정하면 됩니다.</p>
+                    </details>
+                </div>
+            </div>
+        </section>
+
+        <!-- 다른 옵션들 -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">🌐 다른 배포 옵션</h2>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Cloudflare Pages -->
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold text-blue-600 mb-3">Cloudflare Pages</h3>
+                    <ol class="space-y-2 text-sm text-gray-700">
+                        <li>1. <a href="https://pages.cloudflare.com" target="_blank" class="text-blue-600 underline">pages.cloudflare.com</a> 방문</li>
+                        <li>2. GitHub 계정 연동</li>
+                        <li>3. 저장소 선택</li>
+                        <li>4. 자동 배포 완료!</li>
+                    </ol>
+                    <p class="mt-4 text-xs text-gray-600">⚡ 전 세계 CDN으로 초고속 로딩</p>
+                </div>
+                
+                <!-- Netlify -->
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold text-purple-600 mb-3">Netlify</h3>
+                    <ol class="space-y-2 text-sm text-gray-700">
+                        <li>1. <a href="https://netlify.com" target="_blank" class="text-blue-600 underline">netlify.com</a> 방문</li>
+                        <li>2. 드래그 앤 드롭으로 파일 업로드</li>
+                        <li>3. 즉시 배포 완료!</li>
+                    </ol>
+                    <p class="mt-4 text-xs text-gray-600">🎯 가장 쉬운 배포 방법</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 도움말 -->
+        <section>
+            <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-8 rounded-2xl shadow-xl">
+                <h2 class="text-2xl font-bold mb-4">🆘 도움이 필요하신가요?</h2>
+                <p class="mb-4">배포 과정에서 문제가 발생하거나 질문이 있으시면:</p>
+                <ul class="space-y-2">
+                    <li>📧 GitHub Issues에 질문 남기기</li>
+                    <li>📚 GitHub Pages 공식 문서: <a href="https://docs.github.com/pages" class="underline" target="_blank">docs.github.com/pages</a></li>
+                    <li>💬 Cloudflare Community: <a href="https://community.cloudflare.com" class="underline" target="_blank">community.cloudflare.com</a></li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="gradient-bg text-white py-8 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p>© 2026 보험사 시책 계산기 배포 가이드</p>
+            <p class="text-sm mt-2 opacity-80">
+                <a href="index.html" class="underline hover:opacity-100">← 계산기로 돌아가기</a>
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

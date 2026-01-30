@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>샘플 데이터 다운로드 - 보험사 시책 계산기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+        * { font-family: 'Noto Sans KR', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        pre { background: #f3f4f6; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; font-size: 0.75rem; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <header class="gradient-bg text-white py-8">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl font-black mb-2">📊 샘플 데이터 다운로드</h1>
+            <p class="text-lg opacity-90">엑셀 데이터 붙여넣기용 샘플 파일</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-12 max-w-6xl">
+        
+        <!-- 사용 방법 -->
+        <section class="mb-12">
+            <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-8">
+                <h2 class="text-2xl font-bold text-blue-800 mb-4">📋 사용 방법</h2>
+                <ol class="space-y-3 text-gray-700">
+                    <li><strong>1.</strong> 아래에서 원하는 보험사/주차의 샘플 데이터를 복사</li>
+                    <li><strong>2.</strong> 배포된 웹사이트 → 관리자 페이지 접속</li>
+                    <li><strong>3.</strong> 비밀번호 입력: <code class="bg-white px-2 py-1 rounded">admin1234</code></li>
+                    <li><strong>4.</strong> "인별 데이터 관리" 탭 선택</li>
+                    <li><strong>5.</strong> 보험사 및 주차 선택</li>
+                    <li><strong>6.</strong> 텍스트 영역에 붙여넣기 (Ctrl+V / Cmd+V)</li>
+                    <li><strong>7.</strong> "💾 데이터 파싱 및 저장" 클릭</li>
+                    <li><strong>8.</strong> 미리보기 확인 후 "💾 전체 저장" 클릭</li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- DB손보 샘플 데이터 -->
+        <section class="mb-12">
+            <div class="bg-white p-8 rounded-2xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-6 text-green-600">🏢 DB손해보험 샘플 데이터</h2>
+                
+                <!-- 1주차 -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xl font-bold">1주차 (1/1~1/8)</h3>
+                        <button onclick="copyToClipboard('db-week1')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            📋 복사하기
+                        </button>
+                    </div>
+                    <pre id="db-week1">순위	이름	사업부	본부	지점	DB채널	영업시작월	영업차월	계약건수	월납보험료	평가업적
+1	김진훈	디지털3사업부	디지털강북본부	강북4지점	보장분석	2021/08	54.0	26	2222608	2061620
+2	이수민	디지털1사업부	디지털강남본부	강남1지점	보장분석	2020/03	60.0	18	1850000	1820000
+3	박민준	디지털2사업부	디지털서초본부	서초2지점	온라인	2019/05	68.0	22	3150000	3100000
+4	최지은	디지털3사업부	디지털강북본부	강북3지점	보장분석	2021/11	51.0	15	1480000	1450000
+5	정현우	디지털1사업부	디지털강남본부	강남2지점	온라인	2020/07	57.0	20	2580000	2550000
+6	강서연	디지털2사업부	디지털서초본부	서초1지점	보장분석	2022/01	48.0	12	950000	920000
+7	윤도현	디지털3사업부	디지털강북본부	강북1지점	온라인	2019/09	66.0	28	4200000	4150000
+8	임채원	디지털1사업부	디지털강남본부	강남3지점	보장분석	2021/04	56.0	14	1250000	1220000
+9	한지우	디지털2사업부	디지털서초본부	서초3지점	온라인	2020/10	54.0	19	2100000	2080000
+10	오승현	디지털3사업부	디지털강북본부	강북2지점	보장분석	2022/05	44.0	11	780000	750000</pre>
+                </div>
+
+                <!-- 2주차 -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xl font-bold">2주차 (1/9~1/15)</h3>
+                        <button onclick="copyToClipboard('db-week2')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            📋 복사하기
+                        </button>
+                    </div>
+                    <pre id="db-week2">순위	이름	사업부	본부	지점	DB채널	영업시작월	영업차월	계약건수	월납보험료	평가업적
+1	김진훈	디지털3사업부	디지털강북본부	강북4지점	보장분석	2021/08	54.0	20	1850000	1820000
+2	이수민	디지털1사업부	디지털강남본부	강남1지점	보장분석	2020/03	60.0	15	2200000	2180000
+3	박민준	디지털2사업부	디지털서초본부	서초2지점	온라인	2019/05	68.0	25	3800000	3750000
+4	최지은	디지털3사업부	디지털강북본부	강북3지점	보장분석	2021/11	51.0	12	1100000	1080000
+5	정현우	디지털1사업부	디지털강남본부	강남2지점	온라인	2020/07	57.0	18	2950000	2920000
+6	강서연	디지털2사업부	디지털서초본부	서초1지점	보장분석	2022/01	48.0	10	850000	820000
+7	윤도현	디지털3사업부	디지털강북본부	강북1지점	온라인	2019/09	66.0	30	5100000	5050000
+8	임채원	디지털1사업부	디지털강남본부	강남3지점	보장분석	2021/04	56.0	11	1350000	1320000
+9	한지우	디지털2사업부	디지털서초본부	서초3지점	온라인	2020/10	54.0	17	2400000	2380000
+10	오승현	디지털3사업부	디지털강북본부	강북2지점	보장분석	2022/05	44.0	8	650000	620000</pre>
+                </div>
+
+                <!-- 3주차 -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xl font-bold">3주차 (1/16~1/22)</h3>
+                        <button onclick="copyToClipboard('db-week3')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            📋 복사하기
+                        </button>
+                    </div>
+                    <pre id="db-week3">순위	이름	사업부	본부	지점	DB채널	영업시작월	영업차월	계약건수	월납보험료	평가업적
+1	김진훈	디지털3사업부	디지털강북본부	강북4지점	보장분석	2021/08	54.0	22	2100000	2080000
+2	이수민	디지털1사업부	디지털강남본부	강남1지점	보장분석	2020/03	60.0	16	1950000	1920000
+3	박민준	디지털2사업부	디지털서초본부	서초2지점	온라인	2019/05	68.0	28	4200000	4150000
+4	최지은	디지털3사업부	디지털강북본부	강북3지점	보장분석	2021/11	51.0	13	1280000	1250000
+5	정현우	디지털1사업부	디지털강남본부	강남2지점	온라인	2020/07	57.0	19	3150000	3120000
+6	강서연	디지털2사업부	디지털서초본부	서초1지점	보장분석	2022/01	48.0	11	920000	890000
+7	윤도현	디지털3사업부	디지털강북본부	강북1지점	온라인	2019/09	66.0	32	5500000	5450000
+8	임채원	디지털1사업부	디지털강남본부	강남3지점	보장분석	2021/04	56.0	12	1420000	1390000
+9	한지우	디지털2사업부	디지털서초본부	서초3지점	온라인	2020/10	54.0	18	2650000	2620000
+10	오승현	디지털3사업부	디지털강북본부	강북2지점	보장분석	2022/05	44.0	9	720000	690000</pre>
+                </div>
+
+                <!-- 4주차 -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xl font-bold">4주차 (1/23~1/31)</h3>
+                        <button onclick="copyToClipboard('db-week4')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            📋 복사하기
+                        </button>
+                    </div>
+                    <pre id="db-week4">순위	이름	사업부	본부	지점	DB채널	영업시작월	영업차월	계약건수	월납보험료	평가업적
+1	김진훈	디지털3사업부	디지털강북본부	강북4지점	보장분석	2021/08	54.0	18	1680000	1650000
+2	이수민	디지털1사업부	디지털강남본부	강남1지점	보장분석	2020/03	60.0	14	1750000	1720000
+3	박민준	디지털2사업부	디지털서초본부	서초2지점	온라인	2019/05	68.0	24	3650000	3600000
+4	최지은	디지털3사업부	디지털강북본부	강북3지점	보장분석	2021/11	51.0	11	980000	950000
+5	정현우	디지털1사업부	디지털강남본부	강남2지점	온라인	2020/07	57.0	17	2850000	2820000
+6	강서연	디지털2사업부	디지털서초본부	서초1지점	보장분석	2022/01	48.0	9	750000	720000
+7	윤도현	디지털3사업부	디지털강북본부	강북1지점	온라인	2019/09	66.0	28	4800000	4750000
+8	임채원	디지털1사업부	디지털강남본부	강남3지점	보장분석	2021/04	56.0	10	1180000	1150000
+9	한지우	디지털2사업부	디지털서초본부	서초3지점	온라인	2020/10	54.0	16	2250000	2220000
+10	오승현	디지털3사업부	디지털강북본부	강북2지점	보장분석	2022/05	44.0	7	580000	550000</pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- 흥국화재 샘플 데이터 -->
+        <section class="mb-12">
+            <div class="bg-white p-8 rounded-2xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-6 text-pink-600">🏢 흥국화재 샘플 데이터</h2>
+                
+                <div class="mb-8">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xl font-bold">1주차 (1/1~1/8)</h3>
+                        <button onclick="copyToClipboard('heungkuk-week1')" class="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600">
+                            📋 복사하기
+                        </button>
+                    </div>
+                    <pre id="heungkuk-week1">순위	이름	사업부	본부	지점	흥국채널	영업시작월	영업차월	계약건수	월납보험료	평가업적
+1	김진훈	디지털3사업부	디지털강북본부	강북4지점	온라인	2021/08	54.0	15	3500000	3450000
+2	이수민	디지털1사업부	디지털강남본부	강남1지점	보장분석	2020/03	60.0	12	2200000	2180000
+3	박민준	디지털2사업부	디지털서초본부	서초2지점	온라인	2019/05	68.0	18	5100000	5050000
+4	최지은	디지털3사업부	디지털강북본부	강북3지점	보장분석	2021/11	51.0	10	1800000	1750000
+5	정현우	디지털1사업부	디지털강남본부	강남2지점	온라인	2020/07	57.0	14	3200000	3180000
+6	강서연	디지털2사업부	디지털서초본부	서초1지점	보장분석	2022/01	48.0	8	1100000	1080000
+7	윤도현	디지털3사업부	디지털강북본부	강북1지점	온라인	2019/09	66.0	22	7200000	7150000
+8	임채원	디지털1사업부	디지털강남본부	강남3지점	보장분석	2021/04	56.0	9	1550000	1520000
+9	한지우	디지털2사업부	디지털서초본부	서초3지점	온라인	2020/10	54.0	13	2800000	2780000
+10	오승현	디지털3사업부	디지털강북본부	강북2지점	보장분석	2022/05	44.0	7	950000	920000</pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- 중요 안내 -->
+        <section class="mb-12">
+            <div class="bg-yellow-50 border-2 border-yellow-300 rounded-2xl p-8">
+                <h2 class="text-2xl font-bold text-yellow-800 mb-4">⚠️ 중요 안내</h2>
+                <div class="space-y-3 text-gray-700">
+                    <div>
+                        <h3 class="font-bold mb-1">1. "월납보험료" 컬럼이 중요합니다!</h3>
+                        <p class="text-sm">시책금 계산은 "월납보험료" 컬럼 값을 기준으로 합니다.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-bold mb-1">2. 원 단위로 입력하세요</h3>
+                        <p class="text-sm">예: 2,222,608원 → <code class="bg-white px-2 py-1 rounded">2222608</code> (콤마 제거)</p>
+                    </div>
+                    <div>
+                        <h3 class="font-bold mb-1">3. 탭으로 구분되어야 합니다</h3>
+                        <p class="text-sm">엑셀에서 복사하면 자동으로 탭 구분됩니다.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-bold mb-1">4. 백업을 꼭 하세요!</h3>
+                        <p class="text-sm">데이터 입력 후 관리자 페이지에서 "📥 인별 데이터 다운로드" 클릭</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 실제 데이터 만드는 방법 -->
+        <section class="mb-12">
+            <div class="bg-white p-8 rounded-2xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-6 text-purple-600">📝 실제 엑셀 데이터 만드는 방법</h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-lg font-bold mb-3">방법 1: 엑셀에서 직접 작성</h3>
+                        <ol class="space-y-2 text-gray-700 list-decimal list-inside">
+                            <li>새 엑셀 파일 열기</li>
+                            <li>첫 번째 행에 컬럼명 입력 (위 샘플 참고)</li>
+                            <li>두 번째 행부터 사원 데이터 입력</li>
+                            <li>전체 선택 (Ctrl+A) → 복사 (Ctrl+C)</li>
+                            <li>계산기 관리자 페이지에서 붙여넣기 (Ctrl+V)</li>
+                        </ol>
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-bold mb-3">방법 2: 기존 엑셀 파일 사용</h3>
+                        <ol class="space-y-2 text-gray-700 list-decimal list-inside">
+                            <li>기존 업적 엑셀 파일 열기</li>
+                            <li>필수 컬럼 확인: 이름, 본부, 지점, <strong>월납보험료</strong></li>
+                            <li>컬럼 순서를 위 샘플과 동일하게 정렬</li>
+                            <li>데이터 범위 선택 → 복사</li>
+                            <li>계산기에 붙여넣기</li>
+                        </ol>
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-bold mb-3">방법 3: 샘플 데이터 수정</h3>
+                        <ol class="space-y-2 text-gray-700 list-decimal list-inside">
+                            <li>위 샘플 데이터 복사</li>
+                            <li>엑셀에 붙여넣기</li>
+                            <li>이름과 금액만 실제 데이터로 수정</li>
+                            <li>다시 복사 → 계산기에 붙여넣기</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 빠른 링크 -->
+        <section>
+            <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-8 rounded-2xl shadow-xl">
+                <h2 class="text-2xl font-bold mb-6">🔗 빠른 링크</h2>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <a href="index.html" class="block p-4 bg-white bg-opacity-20 rounded-xl hover:bg-opacity-30 transition-all text-center">
+                        <span class="text-3xl mb-2 block">💰</span>
+                        <span class="font-bold">계산기 열기</span>
+                    </a>
+                    <a href="SAMPLE-DATA-GUIDE.md" class="block p-4 bg-white bg-opacity-20 rounded-xl hover:bg-opacity-30 transition-all text-center">
+                        <span class="text-3xl mb-2 block">📖</span>
+                        <span class="font-bold">상세 가이드</span>
+                    </a>
+                    <a href="start.html" class="block p-4 bg-white bg-opacity-20 rounded-xl hover:bg-opacity-30 transition-all text-center">
+                        <span class="text-3xl mb-2 block">🚀</span>
+                        <span class="font-bold">배포 안내</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="gradient-bg text-white py-8 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p>© 2026 보험사 시책 계산기 - 샘플 데이터</p>
+        </div>
+    </footer>
+
+    <script>
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                // 성공 알림
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = '✅ 복사됨!';
+                button.classList.remove('bg-blue-500', 'hover:bg-blue-600', 'bg-pink-500', 'hover:bg-pink-600');
+                button.classList.add('bg-green-500');
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('bg-green-500');
+                    if (elementId.includes('heungkuk')) {
+                        button.classList.add('bg-pink-500', 'hover:bg-pink-600');
+                    } else {
+                        button.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                    }
+                }, 2000);
+            }).catch(err => {
+                alert('복사에 실패했습니다. 직접 선택하여 복사해주세요.');
+            });
+        }
+    </script>
+</body>
+</html>
