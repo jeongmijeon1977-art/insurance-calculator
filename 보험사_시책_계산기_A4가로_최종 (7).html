@@ -1,0 +1,2860 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>보험사 시책 계산기 - 완전 통합 버전 | 2026년 1월</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+        
+        * {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card-shadow {
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .company-btn.selected {
+            transform: scale(1.1);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        .employee-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .employee-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .page-transition {
+            display: none;
+        }
+
+        .page-transition.active {
+            display: block;
+        }
+
+        .paste-area {
+            min-height: 300px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            background: #10b981;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 9999;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .admin-tab {
+            display: none;
+        }
+
+        .admin-tab.active {
+            display: block;
+        }
+        
+        /* 인쇄용 스타일 */
+        @media print {
+            @page {
+                size: A4 landscape;  /* A4 가로 */
+                margin: 12mm;
+            }
+            
+            body {
+                background: white !important;
+                font-size: 11pt !important;
+            }
+            
+            /* 특정 요소만 숨김 */
+            header,
+            footer,
+            nav,
+            #companySelection,
+            #searchSection,
+            #bulkPrintSection,
+            #totalSimulation,
+            .toast,
+            button,
+            .no-print {
+                display: none !important;
+            }
+            
+            /* 1페이지: 사원정보 + 주차별 (페이지 넘김) - 절대 건드리지 않음 */
+            #employeeInfo {
+                display: block !important;
+                page-break-after: always !important;
+                page-break-inside: auto !important;
+            }
+            
+            /* 2페이지: 총 시책금 결과 (새 페이지 시작, 분할 방지) */
+            #resultSection {
+                display: block !important;
+                page-break-before: always !important;
+                page-break-inside: avoid !important;
+                page-break-after: auto !important;
+                font-size: 9pt !important;
+            }
+            
+            /* 2페이지 내부 요소들도 분할 방지 */
+            #resultSection * {
+                page-break-inside: avoid !important;
+            }
+            
+            /* 2페이지 제목 크기 조정 */
+            #resultSection h2 {
+                font-size: 14pt !important;
+                margin-bottom: 8px !important;
+            }
+            
+            #resultSection h3 {
+                font-size: 12pt !important;
+                margin-bottom: 6px !important;
+            }
+            
+            #resultSection h4 {
+                font-size: 10pt !important;
+            }
+            
+            /* 2페이지 여백 압축 */
+            #resultSection .mb-8,
+            #resultSection .mb-6 {
+                margin-bottom: 12px !important;
+            }
+            
+            #resultSection .mb-4 {
+                margin-bottom: 8px !important;
+            }
+            
+            #resultSection .mb-3 {
+                margin-bottom: 6px !important;
+            }
+            
+            #resultSection .p-6,
+            #resultSection .p-8 {
+                padding: 12px !important;
+            }
+            
+            #resultSection .p-4 {
+                padding: 8px !important;
+            }
+            
+            /* 2페이지 그리드 간격 */
+            #resultSection .gap-4 {
+                gap: 8px !important;
+            }
+            
+            /* 레이아웃 */
+            .card-shadow {
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+            }
+            
+            .gradient-bg {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            /* 배경색 유지 */
+            .bg-green-50 {
+                background-color: #f0fdf4 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .bg-purple-50 {
+                background-color: #faf5ff !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .bg-red-50 {
+                background-color: #fef2f2 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .bg-orange-50 {
+                background-color: #fff7ed !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .bg-yellow-50 {
+                background-color: #fefce8 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .bg-blue-50 {
+                background-color: #eff6ff !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            /* 회사명 강조 */
+            #resultCompanyName,
+            #weeklyCompanyName {
+                font-size: 16pt !important;
+                font-weight: 900 !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    
+    <!-- Toast 알림 -->
+    <div id="toast" class="toast"></div>
+
+    <!-- 헤더 -->
+    <header class="gradient-bg text-white py-6 shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                    <h1 class="text-3xl font-black mb-1" id="headerTitle">💰 보험사 시책 계산기</h1>
+                    <p class="text-sm opacity-90" id="headerSubtitle"></p>
+                </div>
+                <div class="text-right">
+                    <button onclick="togglePage()" id="pageToggleBtn" class="inline-block bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg mb-2 transition-all cursor-pointer">
+                        <span class="text-sm font-bold">⚙️ 관리자 페이지</span>
+                    </button>
+                    <p class="text-xs opacity-70" id="headerDesc">사원별 시책금 자동 계산</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 계산기 페이지 -->
+    <div id="calculatorPage" class="page-transition active">
+        <main class="container mx-auto px-4 py-8">
+            
+            <!-- 보험사 선택 -->
+            <section id="companySelection" class="mb-8 animate-fade-in">
+                <div class="bg-white rounded-2xl p-6 card-shadow">
+                    <div class="text-center mb-6">
+                        <h2 class="text-2xl font-black mb-2 text-gray-800">🏢 보험사 선택</h2>
+                        <p class="text-gray-600">조회할 보험사를 선택하세요</p>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <button onclick="selectCompany('db')" id="btn-db" class="company-btn p-6 rounded-2xl bg-gradient-to-r from-green-400 to-teal-500 text-white hover:scale-105 hover:shadow-2xl transition-all shadow-lg">
+                            <div class="text-2xl font-black leading-tight">DB<br>손보</div>
+                        </button>
+                        <button onclick="selectCompany('heungkuk')" id="btn-heungkuk" class="company-btn p-6 rounded-2xl bg-gradient-to-r from-pink-400 to-pink-600 text-white hover:scale-105 hover:shadow-2xl transition-all shadow-lg">
+                            <div class="text-2xl font-black leading-tight">흥국<br>화재</div>
+                        </button>
+                        <button onclick="selectCompany('meritz')" id="btn-meritz" class="company-btn p-6 rounded-2xl bg-gradient-to-r from-red-500 to-red-700 text-white hover:scale-105 hover:shadow-2xl transition-all shadow-lg">
+                            <div class="text-2xl font-black leading-tight">메리츠<br>화재</div>
+                        </button>
+                        <button onclick="selectCompany('kb')" id="btn-kb" class="company-btn p-6 rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-white hover:scale-105 hover:shadow-2xl transition-all shadow-lg">
+                            <div class="text-2xl font-black leading-tight">KB<br>손보</div>
+                        </button>
+                        <button onclick="selectCompany('monthly')" id="btn-monthly" class="company-btn p-6 rounded-2xl bg-gradient-to-r from-purple-400 to-purple-600 text-white hover:scale-105 hover:shadow-2xl transition-all shadow-lg">
+                            <div class="text-xl font-black leading-tight" id="monthly-company-name">이달<br>주력사</div>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 사원 검색 -->
+            <section class="mb-8 animate-fade-in" id="searchSection" style="display: none;">
+                <div class="bg-white rounded-2xl p-6 card-shadow">
+                    <h2 class="text-xl font-bold mb-4 text-gray-800">🔍 사원 검색</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">본부 선택</label>
+                            <select id="branchSelect" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl" onchange="filterOffices()">
+                                <option value="">전체</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">지점 선택</label>
+                            <select id="officeSelect" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl" onchange="filterEmployees()">
+                                <option value="">전체</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">이름 검색</label>
+                            <input type="text" id="nameSearch" placeholder="이름 입력..." 
+                                   class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl"
+                                   oninput="filterEmployees()">
+                        </div>
+                    </div>
+
+                    <!-- 검색 결과 -->
+                    <div id="searchResults" class="mt-4">
+                        <p class="text-gray-500 text-center py-8">보험사를 선택하고 검색해주세요</p>
+                    </div>
+                    
+                    <!-- 일괄 인쇄 버튼 -->
+                    <div id="bulkPrintSection" style="display: none;" class="mt-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-bold text-blue-800">선택된 사원: <span id="selectedCount">0</span>명</p>
+                                <p class="text-xs text-gray-600 mt-1">💡 체크박스를 선택하여 여러 사원을 한 번에 인쇄할 수 있습니다</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="selectAllEmployees()" class="px-4 py-2 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-600 transition-all">
+                                    ✓ 전체 선택
+                                </button>
+                                <button onclick="deselectAllEmployees()" class="px-4 py-2 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-600 transition-all">
+                                    ✕ 전체 해제
+                                </button>
+                                <button onclick="printSelectedEmployees()" class="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-all">
+                                    🖨️ 선택 사원 일괄 인쇄
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 선택된 사원 정보 -->
+            <section class="mb-8 animate-fade-in" id="employeeInfo" style="display: none;">
+                <div class="bg-white rounded-2xl p-6 card-shadow">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-bold text-gray-800">👤 선택된 사원 정보</h2>
+                        <div class="flex gap-2 no-print">
+                            <button onclick="printEmployee()" class="px-4 py-2 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 transition-all">
+                                🖨️ 인쇄하기
+                            </button>
+                            <button onclick="clearSelection()" class="px-4 py-2 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-600">
+                                ✕ 선택 해제
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-purple-50 p-4 rounded-xl mb-4">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div>
+                                <p class="text-gray-600">이름</p>
+                                <p class="font-bold text-lg" id="selectedName">-</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">사업부</p>
+                                <p class="font-bold" id="selectedDept">-</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">본부</p>
+                                <p class="font-bold" id="selectedBranch">-</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">지점</p>
+                                <p class="font-bold" id="selectedOffice">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 주차별 업적 -->
+                    <h3 class="font-bold mb-3">📊 <span id="weeklyCompanyName"></span> 주차별 월납보험료 및 시책금</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="weeklyData">
+                        <!-- 동적으로 생성됨 -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 총 시책금 결과 -->
+            <section id="resultSection" style="display: none;">
+                <div class="bg-white rounded-2xl p-6 card-shadow mb-6 animate-fade-in">
+                    <h2 class="text-2xl font-bold mb-6 text-gray-800">🎉 총 시책금 계산 결과</h2>
+                    
+                    <div class="bg-gradient-to-r from-purple-50 to-pink-50 p-8 rounded-2xl text-center mb-6">
+                        <p class="text-gray-700 mb-2">💎 <span id="resultCompanyName"></span> 총 시책금</p>
+                        <p class="text-5xl font-black text-purple-600 mb-4" id="grandTotal">0만원</p>
+                        <p class="text-sm text-gray-600">총 월납보험료: <span class="font-bold" id="totalAmount">0만원</span></p>
+                    </div>
+                    
+                    <!-- 백백천천 시상금 -->
+                    <div id="baekbaekReward" style="display: none;">
+                        <!-- 동적으로 생성됨 -->
+                    </div>
+                    
+                    <!-- 전체 시뮬레이션 -->
+                    <div id="totalSimulation" class="mb-6">
+                        <!-- 동적으로 생성됨 -->
+                    </div>
+
+                    <!-- 주차별 상세 내역 -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="detailBreakdown">
+                        <!-- 동적으로 생성됨 -->
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- 관리자 페이지 -->
+    <div id="adminPage" class="page-transition">
+        <main class="container mx-auto px-4 py-8">
+            
+            <!-- 관리자 탭 선택 -->
+            <section class="mb-8">
+                <div class="bg-white rounded-2xl p-6 card-shadow">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-2xl font-bold text-gray-800">⚙️ 관리자 기능 선택</h2>
+                        <button onclick="changeAdminPassword()" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold rounded-lg hover:shadow-lg transition-all">
+                            🔑 비밀번호 변경
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button onclick="switchAdminTab('policy')" id="admin-tab-policy" class="tab-button active p-6 rounded-xl border-2 border-gray-300">
+                            <div class="text-left">
+                                <h3 class="font-bold text-lg mb-2">📊 시책 설정</h3>
+                                <p class="text-sm text-gray-600">월시책 지급률, 주간시상 금액 등 설정</p>
+                            </div>
+                        </button>
+                        <button onclick="switchAdminTab('employee')" id="admin-tab-employee" class="tab-button p-6 rounded-xl border-2 border-gray-300 bg-gray-50">
+                            <div class="text-left">
+                                <h3 class="font-bold text-lg mb-2">👥 인별 데이터 관리</h3>
+                                <p class="text-sm text-gray-600">엑셀 붙여넣기로 사원별 업적 입력</p>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="mt-4 p-3 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                        <p class="text-xs text-gray-700">
+                            💡 <strong>기본 비밀번호:</strong> admin1234 (최초 1회만 사용 후 반드시 변경하세요)
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 시책 설정 탭 -->
+            <div id="policyTab" class="admin-tab active">
+                <!-- 보험사 탭 -->
+                <section class="mb-8">
+                    <div class="bg-white rounded-2xl p-4 card-shadow">
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="showPolicyCompany('db')" id="policy-tab-db" class="tab-button active px-6 py-3 rounded-lg font-bold">
+                                DB손보
+                            </button>
+                            <button onclick="showPolicyCompany('heungkuk')" id="policy-tab-heungkuk" class="tab-button px-6 py-3 rounded-lg font-bold bg-gray-100">
+                                흥국화재
+                            </button>
+                            <button onclick="showPolicyCompany('meritz')" id="policy-tab-meritz" class="tab-button px-6 py-3 rounded-lg font-bold bg-gray-100">
+                                메리츠화재
+                            </button>
+                            <button onclick="showPolicyCompany('kb')" id="policy-tab-kb" class="tab-button px-6 py-3 rounded-lg font-bold bg-gray-100">
+                                KB손보
+                            </button>
+                            <button onclick="showPolicyCompany('monthly')" id="policy-tab-monthly" class="tab-button px-6 py-3 rounded-lg font-bold bg-gray-100">
+                                이달주력사
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 보험사별 설정 -->
+                <div id="policySettings"></div>
+
+                <!-- 시책 데이터 관리 -->
+                <section class="mt-8">
+                    <div class="bg-white rounded-2xl p-6 card-shadow">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800">💾 시책 데이터 관리</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <button onclick="saveAllPolicyData()" 
+                                    class="px-6 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl hover:shadow-lg transition-all">
+                                💾 전체 저장
+                            </button>
+                            <button onclick="exportPolicyData()" 
+                                    class="px-6 py-4 bg-blue-500 text-white font-bold rounded-xl hover:bg-blue-600 transition-all">
+                                📥 시책 데이터 다운로드
+                            </button>
+                            <button onclick="document.getElementById('importPolicyFile').click()" 
+                                    class="px-6 py-4 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 transition-all">
+                                📤 시책 데이터 불러오기
+                            </button>
+                        </div>
+                        <input type="file" id="importPolicyFile" accept=".json" style="display: none;" onchange="importPolicyData(event)">
+                        
+                        <div class="p-4 bg-yellow-50 border-2 border-yellow-200 rounded-xl">
+                            <p class="text-sm text-gray-700">
+                                💡 <strong>사용 팁:</strong> 매달 시작 시 이전 달 데이터를 다운로드받아 백업하고, 
+                                새로운 달의 지급률을 입력한 후 "전체 저장"을 누르세요!
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 인별 데이터 관리 탭 -->
+            <div id="employeeTab" class="admin-tab">
+                <!-- 사용 안내 -->
+                <section class="mb-8">
+                    <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-6">
+                        <h2 class="text-xl font-bold text-blue-800 mb-3">📋 사용 방법</h2>
+                        <ol class="space-y-2 text-gray-700">
+                            <li><strong>1.</strong> 보험사와 주차를 선택하세요</li>
+                            <li><strong>2.</strong> 엑셀에서 데이터를 복사하세요 (제목 행 포함)</li>
+                            <li><strong>3.</strong> 아래 텍스트 영역에 붙여넣기 (Ctrl+V)</li>
+                            <li><strong>4.</strong> "데이터 파싱 및 저장" 버튼을 클릭하세요</li>
+                            <li><strong>5.</strong> 모든 보험사/주차 데이터 입력 후 "전체 저장"을 클릭하세요</li>
+                        </ol>
+                        <div class="mt-4 p-3 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+                            <p class="text-sm font-bold text-yellow-800">
+                                ⚠️ 중요: <span class="text-red-600">"월납보험료"</span> 컬럼의 값이 업적으로 반영됩니다!
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 보험사 선택 -->
+                <section class="mb-8">
+                    <div class="bg-white rounded-2xl p-6 card-shadow">
+                        <h2 class="text-xl font-bold mb-4">🏢 보험사 선택</h2>
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                            <button onclick="selectEmployeeCompany('db')" id="emp-tab-db" class="tab-button active px-6 py-4 rounded-xl font-bold">
+                                DB손보
+                            </button>
+                            <button onclick="selectEmployeeCompany('heungkuk')" id="emp-tab-heungkuk" class="tab-button px-6 py-4 rounded-xl font-bold bg-gray-100">
+                                흥국화재
+                            </button>
+                            <button onclick="selectEmployeeCompany('meritz')" id="emp-tab-meritz" class="tab-button px-6 py-4 rounded-xl font-bold bg-gray-100">
+                                메리츠화재
+                            </button>
+                            <button onclick="selectEmployeeCompany('kb')" id="emp-tab-kb" class="tab-button px-6 py-4 rounded-xl font-bold bg-gray-100">
+                                KB손보
+                            </button>
+                            <button onclick="selectEmployeeCompany('monthly')" id="emp-tab-monthly" class="tab-button px-6 py-4 rounded-xl font-bold bg-gray-100">
+                                이달주력사
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 주차 선택 -->
+                <section class="mb-8">
+                    <div class="bg-white rounded-2xl p-6 card-shadow">
+                        <h2 class="text-xl font-bold mb-4">📅 주차 선택</h2>
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                            <button onclick="selectWeek(0)" id="week-0" class="tab-button px-6 py-4 rounded-xl font-bold bg-gray-100">
+                                전주차<br><span class="text-xs">(전월)</span>
+                            </button>
+                            <button onclick="selectWeek(1)" id="week-1" class="tab-button active px-6 py-4 rounded-xl font-bold">
+                                1주차
+                            </button>
+                            <button onclick="selectWeek(2)" id="week-2" class="tab-button px-6 py-4 rounded-xl font-bold bg-gray-100">
+                                2주차
+                            </button>
+                            <button onclick="selectWeek(3)" id="week-3" class="tab-button px-6 py-4 rounded-xl font-bold bg-gray-100">
+                                3주차
+                            </button>
+                            <button onclick="selectWeek(4)" id="week-4" class="tab-button px-6 py-4 rounded-xl font-bold bg-gray-100">
+                                4주차
+                            </button>
+                        </div>
+                        <div class="mt-4 p-3 bg-purple-50 border-2 border-purple-300 rounded-lg">
+                            <p class="text-sm font-bold text-purple-800 mb-2">💡 전주차란?</p>
+                            <p class="text-sm text-gray-700">
+                                전주차(전월)는 1주차의 <strong>연속가동 시상 계산</strong>을 위한 참고 데이터입니다.<br>
+                                전월 마지막 주차 데이터를 입력하면, 1주차 연속가동 달성 여부를 정확하게 판단할 수 있습니다.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 데이터 입력 영역 -->
+                <section class="mb-8">
+                    <div class="bg-white rounded-2xl p-6 card-shadow">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-xl font-bold">📊 <span id="currentSelection">DB손보 1주차</span> 데이터 입력</h2>
+                            <button onclick="clearPasteArea()" class="px-4 py-2 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-600">
+                                🗑️ 초기화
+                            </button>
+                        </div>
+                        
+                        <textarea id="pasteArea" 
+                                  class="paste-area w-full p-4 border-2 border-gray-300 rounded-xl" 
+                                  placeholder="엑셀 데이터를 여기에 붙여넣으세요...&#10;&#10;예시:&#10;순위	이름	사업부	본부	지점	DB채널	영업시작월	영업차월	계약건수	월납보험료	평가업적&#10;1	김진훈	디지털3사업부	디지털강북본부	강북4지점	보장분석	2021/08	54.0	26	2222608	2061620&#10;&#10;⚠️ '월납보험료' 컬럼의 값이 시책금 계산에 사용됩니다"></textarea>
+
+                        <div class="mt-4 flex gap-3">
+                            <button onclick="parseAndSaveData()" class="flex-1 px-6 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl hover:shadow-lg transition-all">
+                                💾 데이터 파싱 및 저장
+                            </button>
+                        </div>
+
+                        <!-- 파싱된 데이터 미리보기 -->
+                        <div id="previewSection" class="mt-6" style="display: none;">
+                            <h3 class="text-lg font-bold mb-3">✅ 파싱된 데이터 미리보기</h3>
+                            <div class="bg-green-50 border-2 border-green-200 rounded-xl p-4">
+                                <p class="text-sm text-gray-700 mb-2">
+                                    <strong>총 <span id="totalRows">0</span>명의 데이터가 파싱되었습니다.</strong>
+                                </p>
+                                <div id="previewData" class="overflow-x-auto text-xs"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 현재 저장된 데이터 현황 -->
+                <section class="mb-8">
+                    <div class="bg-white rounded-2xl p-6 card-shadow">
+                        <h2 class="text-xl font-bold mb-4">📈 현재 저장된 데이터 현황</h2>
+                        <div id="dataStatus" class="grid grid-cols-1 md:grid-cols-5 gap-4"></div>
+                    </div>
+                </section>
+
+                <!-- 인별 데이터 관리 -->
+                <section class="mb-8">
+                    <div class="bg-white rounded-2xl p-6 card-shadow">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800">💾 인별 데이터 관리</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                            <button onclick="saveAllEmployeeData()" 
+                                    class="px-6 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl hover:shadow-lg transition-all">
+                                💾 전체 저장
+                            </button>
+                            <button onclick="exportEmployeeData()" 
+                                    class="px-6 py-4 bg-blue-500 text-white font-bold rounded-xl hover:bg-blue-600 transition-all">
+                                📥 인별 데이터 다운로드
+                            </button>
+                            <button onclick="document.getElementById('importEmployeeFile').click()" 
+                                    class="px-6 py-4 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 transition-all">
+                                📤 인별 데이터 불러오기
+                            </button>
+                            <button onclick="clearAllEmployeeData()" 
+                                    class="px-6 py-4 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-all">
+                                🗑️ 전체 데이터 초기화
+                            </button>
+                        </div>
+                        <input type="file" id="importEmployeeFile" accept=".json" style="display: none;" onchange="importEmployeeData(event)">
+                        
+                        <div class="p-4 bg-red-50 border-2 border-red-200 rounded-xl mb-4">
+                            <p class="text-sm font-bold text-red-800 mb-2">⚠️ 중요: 월납보험료 계산 방식 변경</p>
+                            <p class="text-sm text-gray-700">
+                                이전 버전에서 입력한 데이터는 <strong>반올림</strong>으로 저장되어 있습니다.<br>
+                                정확한 계산을 위해 <strong class="text-red-600">"전체 데이터 초기화"</strong> 후 데이터를 다시 입력해주세요.<br>
+                                (예: 119,942원 → 기존 12만원 → <strong class="text-blue-600">수정 후 11만원</strong>)
+                            </p>
+                        </div>
+                        
+                        <div class="p-4 bg-yellow-50 border-2 border-yellow-200 rounded-xl">
+                            <p class="text-sm text-gray-700">
+                                💡 <strong>사용 팁:</strong> 모든 보험사의 주차별 데이터를 입력한 후 반드시 "전체 저장"을 눌러주세요!
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- 푸터 -->
+    <footer class="gradient-bg text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-sm opacity-80">© 2026 보험사 시책 계산기 | 완전 통합 버전</p>
+        </div>
+    </footer>
+
+    <script>
+        // 페이지 전환
+        let currentPage = 'calculator';
+        let currentAdminTab = 'policy';
+        let adminPassword = localStorage.getItem('admin_password') || 'admin1234';
+
+        // 헤더 년월 업데이트
+        function updateHeaderMonth() {
+            const month = insuranceData.currentMonth || '2026년 1월';
+            document.getElementById('headerSubtitle').textContent = `${month} 시책 계산 | 인별 월납보험료 조회`;
+        }
+
+        function togglePage() {
+            if (currentPage === 'calculator') {
+                // 관리자 페이지로 전환 - 비밀번호 확인
+                const inputPassword = prompt('🔒 관리자 페이지 비밀번호를 입력하세요:');
+                if (inputPassword === null) return;
+                if (inputPassword !== adminPassword) {
+                    alert('❌ 비밀번호가 올바르지 않습니다.');
+                    return;
+                }
+                
+                document.getElementById('calculatorPage').classList.remove('active');
+                document.getElementById('adminPage').classList.add('active');
+                document.getElementById('headerTitle').textContent = '⚙️ 보험사 시책 관리자';
+                document.getElementById('headerSubtitle').textContent = '시책 설정 및 인별 데이터 관리';
+                document.getElementById('pageToggleBtn').innerHTML = '<span class="text-sm font-bold">🔙 계산기로 돌아가기</span>';
+                document.getElementById('headerDesc').textContent = '모든 설정 통합 관리';
+                currentPage = 'admin';
+                if (currentAdminTab === 'policy') {
+                    showPolicyCompany(currentPolicyCompany);
+                } else {
+                    updateDataStatus();
+                }
+            } else {
+                // 계산기 페이지로 전환
+                document.getElementById('adminPage').classList.remove('active');
+                document.getElementById('calculatorPage').classList.add('active');
+                document.getElementById('headerTitle').textContent = '💰 보험사 시책 계산기';
+                updateHeaderMonth();
+                document.getElementById('pageToggleBtn').innerHTML = '<span class="text-sm font-bold">⚙️ 관리자 페이지</span>';
+                document.getElementById('headerDesc').textContent = '사원별 시책금 자동 계산';
+                currentPage = 'calculator';
+            }
+        }
+
+        // 관리자 비밀번호 변경
+        function changeAdminPassword() {
+            const currentPw = prompt('🔒 현재 비밀번호를 입력하세요:');
+            if (currentPw === null) return;
+            if (currentPw !== adminPassword) {
+                alert('❌ 현재 비밀번호가 올바르지 않습니다.');
+                return;
+            }
+            const newPw = prompt('🔑 새 비밀번호를 입력하세요:');
+            if (newPw === null || newPw.trim() === '') return;
+            if (newPw.length < 4) {
+                alert('❌ 비밀번호는 최소 4자 이상이어야 합니다.');
+                return;
+            }
+            const confirmPw = prompt('🔑 새 비밀번호를 다시 입력하세요:');
+            if (confirmPw === null) return;
+            if (newPw !== confirmPw) {
+                alert('❌ 비밀번호가 일치하지 않습니다.');
+                return;
+            }
+            adminPassword = newPw;
+            localStorage.setItem('admin_password', newPw);
+            showToast('✅ 비밀번호가 성공적으로 변경되었습니다!', 'success');
+        }
+
+        // 관리자 탭 전환
+        function switchAdminTab(tab) {
+            currentAdminTab = tab;
+            
+            // 탭 버튼 스타일
+            document.querySelectorAll('[id^="admin-tab-"]').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('bg-gray-50');
+            });
+            document.getElementById(`admin-tab-${tab}`).classList.add('active');
+            document.getElementById(`admin-tab-${tab}`).classList.remove('bg-gray-50');
+            
+            // 탭 컨텐츠 전환
+            document.querySelectorAll('.admin-tab').forEach(tabContent => {
+                tabContent.classList.remove('active');
+            });
+            
+            if (tab === 'policy') {
+                document.getElementById('policyTab').classList.add('active');
+            } else {
+                document.getElementById('employeeTab').classList.add('active');
+            }
+        }
+
+        // 보험사 시책 데이터
+        let insuranceData = {
+            currentMonth: '2026년 1월',
+            db: {
+                name: 'DB손해보험',
+                monthlyRate: 100,
+                petRate: 150,
+                baekbaek: {
+                    50: 20,
+                    100: 100,
+                    200: 200,
+                    300: 300,
+                    400: 400,
+                    500: 500,
+                    600: 600,
+                    700: 700,
+                    800: 800,
+                    900: 900,
+                    1000: 1000
+                },
+                weekly: {
+                    week1: {
+                        dateRange: '1/1~1/8',
+                        company: { 10: 10, 20: 20, 30: 30, 50: 50 },
+                        self: { 10: 50, 20: 100, 30: 150, 50: 250, 70: 350, 100: 500 },
+                        consecutive: {
+                            desc: '12.15~12.31 + 1.1~1.18',
+                            week1: 'week0',
+                            week2: 'week1',
+                            tiers: { 10: 20, 20: 60, 30: 80, 50: 180 }
+                        }
+                    },
+                    week2: {
+                        dateRange: '1/9~1/15',
+                        company: { 10: 10, 20: 20, 30: 30, 50: 50 },
+                        self: { 10: 40, 20: 80, 30: 120, 50: 200, 70: 280, 100: 400 },
+                        consecutive: {
+                            desc: '12.15~12.31 + 1.1~1.18',
+                            week1: 'week0',
+                            week2: 'week1',
+                            tiers: { 10: 20, 20: 60, 30: 80, 50: 180 }
+                        }
+                    },
+                    week3: {
+                        dateRange: '1/16~1/22',
+                        company: { 10: 10, 20: 20, 30: 30, 50: 50 },
+                        self: { 10: 30, 20: 60, 30: 120, 50: 200, 70: 280, 100: 400 },
+                        consecutive: {
+                            desc: '1.19~1.31 + 2.1~2.18',
+                            week1: 'week3',
+                            week2: 'week4',
+                            tiers: { 10: 20, 20: 60, 30: 80, 50: 180 }
+                        }
+                    },
+                    week4: {
+                        dateRange: '1/23~1/31',
+                        company: { 10: 10, 20: 20, 30: 30, 50: 50, 70: 70, 100: 100 },
+                        self: { 10: 10, 20: 20, 30: 30, 50: 50, 70: 70, 100: 100 },
+                        consecutive: {
+                            desc: '1.26~1.31 + 2.1~2.8',
+                            week1: 'week4',
+                            week2: 'week5',
+                            tiers: { 10: 20, 20: 60, 30: 80, 50: 180 }
+                        },
+                        consecutive4week: {
+                            desc: '4주 연속추가 (1.26~1.31 + 2.1~2.8)',
+                            tiers: { 10: 30, 20: 45, 30: 80, 50: 120 }
+                        },
+                        gift: {
+                            desc: '물품시상 (1.26~1.31 + 2.1~2.8)',
+                            tiers: { 10: 20, 20: 50, 30: 100, 50: 200 }
+                        }
+                    }
+                }
+            },
+            heungkuk: {
+                name: '흥국화재',
+                monthlyRate: 100,
+                selfMonthlyRate: 450,
+                baekbaek: {
+                    50: 30,
+                    100: 100,
+                    200: 200,
+                    300: 300,
+                    400: 400,
+                    500: 500,
+                    600: 600,
+                    700: 700,
+                    800: 800,
+                    900: 900,
+                    1000: 1000
+                },
+                weekly: {
+                    week1: {
+                        dateRange: '1/1~1/8',
+                        company: { 10: 10, 20: 20, 30: 45, 50: 75 },
+                        self: { 10: 50, 20: 100, 30: 150, 50: 250, 70: 350, 100: 500 },
+                        consecutive: {
+                            desc: '① 12.29~1.11 / ② 1.1~1.18',
+                            week1: 'week0',
+                            week2: 'week1',
+                            tiers: { 10: 60, 20: 120, 30: 180, 50: 300 }
+                        }
+                    },
+                    week2: {
+                        dateRange: '1/9~1/15',
+                        company: { 10: 10, 20: 20, 30: 45, 50: 75 },
+                        self: { 10: 40, 20: 80, 30: 120, 50: 200, 70: 280, 100: 400 },
+                        consecutive: {
+                            desc: '① 1.1~1.18 / ② 1.12~1.25',
+                            week1: 'week1',
+                            week2: 'week2',
+                            tiers: { 10: 60, 20: 120, 30: 180, 50: 300 }
+                        }
+                    },
+                    week3: {
+                        dateRange: '1/16~1/22',
+                        company: { 10: 10, 20: 20, 30: 30, 50: 50 },
+                        self: { 10: 30, 20: 60, 30: 120, 50: 200, 70: 280, 100: 400 },
+                        consecutive: {
+                            desc: '① 1.12~1.25 / ② 1.19~1.31',
+                            week1: 'week2',
+                            week2: 'week3',
+                            tiers: { 10: 60, 20: 120, 30: 180, 50: 300 }
+                        }
+                    },
+                    week4: {
+                        dateRange: '1/23~1/31',
+                        company: { 10: 5, 20: 10, 30: 30, 50: 50 },
+                        self: { 10: 10, 20: 20, 30: 30, 50: 50, 70: 70, 100: 100 },
+                        consecutive: {
+                            desc: '① 1.19~1.31 / ② 1.26~2.8',
+                            week1: 'week3',
+                            week2: 'week4',
+                            tiers: { 10: 60, 20: 120, 30: 180, 50: 300 }
+                        }
+                    }
+                }
+            },
+            meritz: {
+                name: '메리츠화재',
+                monthlyRate: 100,
+                weekly: {
+                    week1: {
+                        dateRange: '1/1~1/8',
+                        company: { 10: 20, 20: 40, 30: 60, 50: 100, 100: 200 },
+                        self: { 10: 25, 20: 50, 30: 75, 50: 125, 100: 250 },
+                        consecutive: {
+                            desc: '12/15~31 + 1/1~18',
+                            week1: 'week0',
+                            week2: 'week1',
+                            tiers: { 10: 20, 20: 60, 30: 80, 50: 180 }
+                        }
+                    },
+                    week2: {
+                        dateRange: '1/9~1/15',
+                        company: { 10: 20, 20: 40, 30: 60, 50: 100, 100: 200 },
+                        self: { 10: 25, 20: 50, 30: 75, 50: 125, 100: 250 },
+                        consecutive: {
+                            desc: '12/15~31 + 1/1~18',
+                            week1: 'week0',
+                            week2: 'week1',
+                            tiers: { 10: 20, 20: 60, 30: 80, 50: 180 }
+                        }
+                    },
+                    week3: {
+                        dateRange: '1/16~1/22',
+                        company: { 10: 20, 20: 40, 30: 60, 50: 100, 100: 200 },
+                        self: { 10: 25, 20: 50, 30: 75, 50: 125, 100: 250 },
+                        consecutive: {
+                            desc: '1/19~31 + 2/1~18',
+                            week1: 'week3',
+                            week2: 'week4',
+                            tiers: { 10: 20, 20: 60, 30: 80, 50: 180 }
+                        }
+                    },
+                    week4: {
+                        dateRange: '1/23~1/31',
+                        company: { 10: 10, 20: 20, 30: 30, 50: 50, 100: 100 },
+                        self: { 10: 25, 20: 50, 30: 75, 50: 125, 100: 250 },
+                        consecutive: {
+                            desc: '연속가동① (1/19~31 + 2/1~18)',
+                            week1: 'week3',
+                            week2: 'week4',
+                            tiers: { 10: 20, 20: 60, 30: 80, 50: 180 }
+                        },
+                        consecutive4week: {
+                            desc: '연속 추가 (1/26~31 + 2/1~18)',
+                            tiers: { 10: 20, 20: 45, 30: 80, 50: 180 }
+                        }
+                    }
+                }
+            },
+            kb: {
+                name: 'KB손해보험',
+                monthlyRate: 120,
+                petRate: 300,
+                baekbaek: {
+                    50: 25,
+                    100: 100,
+                    200: 200,
+                    300: 300,
+                    400: 400,
+                    500: 500,
+                    600: 600,
+                    700: 700,
+                    800: 800,
+                    900: 900,
+                    1000: 1000
+                },
+                weekly: {
+                    week1: {
+                        dateRange: '1/1~1/8',
+                        company: { 10: 10, 20: 20, 30: 30, 50: 50 },
+                        self: { 50: 20, 100: 100, 200: 200, 300: 300, 1000: 1000 },
+                        consecutive: {
+                            desc: '12, 1월 주차 연속가동 (12/15~31 + 1/1~18)',
+                            week1: 'week0',
+                            week2: 'week1',
+                            tiers: { 10: 20, 20: 60, 30: 80, 50: 180 }
+                        }
+                    },
+                    week2: {
+                        dateRange: '1/9~1/15',
+                        company: { 10: 10, 20: 20, 30: 30, 50: 50 },
+                        self: { 10: 40, 20: 80, 30: 120, 50: 200, 70: 280 },
+                        consecutive: {
+                            desc: '12, 1월 주차 연속가동 (12/15~31 + 1/1~18)',
+                            week1: 'week0',
+                            week2: 'week1',
+                            tiers: { 10: 20, 20: 60, 30: 80, 50: 180 }
+                        }
+                    },
+                    week3: {
+                        dateRange: '1/16~1/22',
+                        company: { 10: 10, 20: 20, 30: 30, 50: 50 },
+                        self: { 10: 30, 20: 60, 30: 90, 50: 150, 70: 210 },
+                        consecutive: {
+                            desc: '1, 2월 주차 연속가동 (1/19~31 + 2/1~18)',
+                            week1: 'week3',
+                            week2: 'week4',
+                            tiers: { 10: 20, 20: 60, 30: 80, 50: 180 }
+                        }
+                    },
+                    week4: {
+                        dateRange: '1/23~1/31',
+                        company: { 10: 5, 20: 10, 30: 30, 50: 50 },
+                        self: { 10: 10, 20: 20, 30: 30, 50: 50 },
+                        consecutive: {
+                            desc: '① 1, 2월 주차 연속가동 (1/19~31 + 2/1~18)',
+                            week1: 'week3',
+                            week2: 'week4',
+                            tiers: { 10: 20, 20: 60, 30: 80, 50: 180 }
+                        },
+                        consecutive4week: {
+                            desc: '② 연속추가 (1/26~31 + 2/1~8)',
+                            tiers: { 10: 30, 20: 45, 30: 80, 50: 120 }
+                        }
+                    }
+                }
+            },
+            monthly: {
+                name: '이달주력사',
+                displayName: '이달주력사',
+                monthlyRate: 100,
+                weekly: {
+                    week1: {
+                        company: { 10: 15, 20: 30, 30: 45, 50: 75 },
+                        self: { 10: 60, 20: 120, 30: 180, 50: 300, 70: 420, 100: 600 }
+                    },
+                    week2: {
+                        company: { 10: 15, 20: 30, 30: 45, 50: 75 },
+                        self: { 10: 50, 20: 100, 30: 150, 50: 250, 70: 350, 100: 500 }
+                    },
+                    week3: {
+                        company: { 10: 15, 20: 30, 30: 45, 50: 75 },
+                        self: { 10: 40, 20: 80, 30: 120, 50: 200, 70: 280, 100: 400 }
+                    },
+                    week4: {
+                        company: { 10: 10, 20: 20, 30: 30, 50: 50 },
+                        self: { 10: 20, 20: 40, 30: 60, 50: 100, 70: 140, 100: 200 }
+                    }
+                }
+            }
+        };
+
+        // 사원 데이터
+        let employeeData = {
+            db: { week0: [], week1: [], week2: [], week3: [], week4: [] },
+            heungkuk: { week0: [], week1: [], week2: [], week3: [], week4: [] },
+            meritz: { week0: [], week1: [], week2: [], week3: [], week4: [] },
+            kb: { week0: [], week1: [], week2: [], week3: [], week4: [] },
+            monthly: { week0: [], week1: [], week2: [], week3: [], week4: [] }
+        };
+
+        let currentCompany = null;
+        let selectedEmployee = null;
+        let currentPolicyCompany = 'db';
+        let currentEmployeeCompany = 'db';
+        let currentWeek = 1;
+
+        const companyNames = {
+            db: 'DB손보',
+            heungkuk: '흥국화재',
+            meritz: '메리츠화재',
+            kb: 'KB손보',
+            monthly: '이달주력사'
+        };
+
+        // ==================== 계산기 페이지 ====================
+
+        // 보험사 선택
+        function selectCompany(company) {
+            currentCompany = company;
+            selectedEmployee = null;
+            
+            // 모든 버튼 초기화
+            document.querySelectorAll('.company-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // 선택된 버튼 강조
+            document.getElementById(`btn-${company}`).classList.add('selected');
+            
+            // 검색 섹션 표시
+            document.getElementById('searchSection').style.display = 'block';
+            document.getElementById('employeeInfo').style.display = 'none';
+            document.getElementById('resultSection').style.display = 'none';
+            
+            // 필터 초기화
+            loadBranches();
+            filterEmployees();
+        }
+
+        // 본부 목록 로드
+        function loadBranches() {
+            const branches = new Set();
+            
+            for (let week = 1; week <= 4; week++) {
+                employeeData[currentCompany][`week${week}`].forEach(emp => {
+                    if (emp.branch) branches.add(emp.branch);
+                });
+            }
+            
+            const branchSelect = document.getElementById('branchSelect');
+            branchSelect.innerHTML = '<option value="">전체</option>';
+            
+            Array.from(branches).sort().forEach(branch => {
+                branchSelect.innerHTML += `<option value="${branch}">${branch}</option>`;
+            });
+        }
+
+        // 지점 필터링
+        function filterOffices() {
+            const selectedBranch = document.getElementById('branchSelect').value;
+            const offices = new Set();
+            
+            for (let week = 1; week <= 4; week++) {
+                employeeData[currentCompany][`week${week}`].forEach(emp => {
+                    if (!selectedBranch || emp.branch === selectedBranch) {
+                        if (emp.office) offices.add(emp.office);
+                    }
+                });
+            }
+            
+            const officeSelect = document.getElementById('officeSelect');
+            officeSelect.innerHTML = '<option value="">전체</option>';
+            
+            Array.from(offices).sort().forEach(office => {
+                officeSelect.innerHTML += `<option value="${office}">${office}</option>`;
+            });
+            
+            filterEmployees();
+        }
+
+        // 사원 필터링
+        function filterEmployees() {
+            const selectedBranch = document.getElementById('branchSelect').value;
+            const selectedOffice = document.getElementById('officeSelect').value;
+            const searchName = document.getElementById('nameSearch').value.toLowerCase();
+            
+            // 모든 주차에서 사원 데이터 수집 (중복 제거)
+            const employeeMap = new Map();
+            
+            for (let week = 1; week <= 4; week++) {
+                employeeData[currentCompany][`week${week}`].forEach(emp => {
+                    const key = `${emp.name}_${emp.branch}_${emp.office}`;
+                    
+                    if (!employeeMap.has(key)) {
+                        employeeMap.set(key, {
+                            name: emp.name,
+                            dept: emp.dept,
+                            branch: emp.branch,
+                            office: emp.office,
+                            weeks: {}
+                        });
+                    }
+                    
+                    employeeMap.get(key).weeks[`week${week}`] = emp.amount;
+                });
+            }
+            
+            // 필터링
+            const filtered = Array.from(employeeMap.values()).filter(emp => {
+                if (selectedBranch && emp.branch !== selectedBranch) return false;
+                if (selectedOffice && emp.office !== selectedOffice) return false;
+                if (searchName && !emp.name.toLowerCase().includes(searchName)) return false;
+                return true;
+            });
+            
+            // 결과 표시
+            displaySearchResults(filtered);
+        }
+
+        // 검색 결과 표시
+        function displaySearchResults(employees) {
+            const resultsDiv = document.getElementById('searchResults');
+            
+            if (employees.length === 0) {
+                resultsDiv.innerHTML = '<p class="text-gray-500 text-center py-8">검색 결과가 없습니다</p>';
+                document.getElementById('bulkPrintSection').style.display = 'none';
+                return;
+            }
+            
+            // 일괄 인쇄 섹션 표시
+            document.getElementById('bulkPrintSection').style.display = 'block';
+            
+            let html = `<p class="text-sm text-gray-600 mb-3">총 <strong>${employees.length}명</strong>의 사원이 검색되었습니다</p>`;
+            html += '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">';
+            
+            employees.forEach((emp, index) => {
+                const weekCount = Object.keys(emp.weeks).length;
+                const totalAmount = Object.values(emp.weeks).reduce((a, b) => a + b, 0);
+                const empId = `emp_${index}`;
+                
+                html += `
+                    <div class="employee-card bg-gray-50 p-4 rounded-xl border-2 border-gray-200 relative">
+                        <div class="absolute top-2 right-2">
+                            <input type="checkbox" class="employee-checkbox w-5 h-5 cursor-pointer" 
+                                   id="${empId}" 
+                                   data-employee='${JSON.stringify(emp).replace(/'/g, "&apos;")}'
+                                   onchange="updateSelectedCount()">
+                        </div>
+                        <div onclick='selectEmployee(${JSON.stringify(emp).replace(/'/g, "&apos;")})' class="cursor-pointer">
+                            <h3 class="font-bold text-lg mb-1 pr-8">${emp.name}</h3>
+                            <p class="text-sm text-gray-600">${emp.branch}</p>
+                            <p class="text-sm text-gray-600 mb-2">${emp.office}</p>
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="text-gray-500">${weekCount}주차 데이터</span>
+                                <span class="font-bold text-purple-600">${totalAmount}만원</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+            updateSelectedCount();
+        }
+
+        // 사원 선택
+        function selectEmployee(employee) {
+            selectedEmployee = employee;
+            
+            // 사원 정보 표시
+            document.getElementById('selectedName').textContent = employee.name;
+            document.getElementById('selectedDept').textContent = employee.dept || '-';
+            document.getElementById('selectedBranch').textContent = employee.branch;
+            document.getElementById('selectedOffice').textContent = employee.office;
+            
+            // 회사명 설정
+            const companyName = companyNames[currentCompany] || '';
+            document.getElementById('weeklyCompanyName').textContent = companyName;
+            
+            document.getElementById('employeeInfo').style.display = 'block';
+            
+            // 주차별 데이터 및 시책금 계산
+            calculateAllWeeks(employee);
+            
+            // 스크롤
+            document.getElementById('employeeInfo').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // 전체 주차 계산
+        function calculateAllWeeks(employee) {
+            const data = insuranceData[currentCompany];
+            let weeklyHTML = '';
+            let totalReward = 0;
+            let totalAmount = 0;
+            let detailHTML = '';
+            
+            // 주차별 금액 저장
+            const weekAmounts = {
+                week0: employee.weeks.week0 || 0,
+                week1: employee.weeks.week1 || 0,
+                week2: employee.weeks.week2 || 0,
+                week3: employee.weeks.week3 || 0,
+                week4: employee.weeks.week4 || 0
+            };
+            
+            // 연속가동 시상 플래그 (한 번만 지급)
+            let hasConsecutiveReward = false;
+            const consecutive4DescAchieved = new Set();
+            const giftDescAchieved = new Set();
+            
+            // 연속가동 시상금 계산 함수 (week1, week2 기반)
+            function checkConsecutiveReward(weekData, weekNum, companyName) {
+                if (!weekData.consecutive || !weekData.consecutive.tiers) {
+                    return { reward: 0, status: '' };
+                }
+                
+                // 이미 지급되었으면 더 이상 지급하지 않음
+                if (hasConsecutiveReward) {
+                    return { reward: 0, status: '' };
+                }
+                
+                const consDesc = weekData.consecutive.desc || '';
+                const consTiers = Object.keys(weekData.consecutive.tiers).map(Number).sort((a, b) => b - a);
+                
+                // week1, week2가 있으면 두 주차 모두 체크
+                if (weekData.consecutive.week1 && weekData.consecutive.week2) {
+                    const week1Amount = weekAmounts[weekData.consecutive.week1] || 0;
+                    const week2Amount = weekAmounts[weekData.consecutive.week2] || 0;
+                    
+                    for (let tier of consTiers) {
+                        let isAchieved = false;
+                        
+                        // 흥국화재: 두 주차 모두 동일 구간 달성
+                        if (companyName === '흥국화재') {
+                            const minAmount = Math.min(week1Amount, week2Amount);
+                            isAchieved = minAmount >= tier;
+                        } 
+                        // DB손보, KB손보, 메리츠: 한쪽은 구간, 다른 쪽은 10만원 이상
+                        else {
+                            isAchieved = (week1Amount >= tier && week2Amount >= 10) || 
+                                        (week1Amount >= 10 && week2Amount >= tier);
+                        }
+                        
+                        if (isAchieved) {
+                            hasConsecutiveReward = true;
+                            return {
+                                reward: weekData.consecutive.tiers[tier],
+                                status: `✓ 연속가동 달성 (${consDesc})`
+                            };
+                        }
+                    }
+                    return { reward: 0, status: '' };
+                }
+                
+                // week1, week2가 없으면 기존 방식 (현재 주차만 체크)
+                const amount = weekAmounts[`week${weekNum}`] || 0;
+                for (let tier of consTiers) {
+                    if (amount >= tier) {
+                        hasConsecutiveReward = true;
+                        return {
+                            reward: weekData.consecutive.tiers[tier],
+                            status: `✓ 연속가동 1차 달성 (${consDesc})`
+                        };
+                    }
+                }
+                return { reward: 0, status: '' };
+            }
+            
+            for (let week = 1; week <= 4; week++) {
+                const amount = employee.weeks[`week${week}`] || 0;
+                totalAmount += amount;
+                
+                if (amount === 0) {
+                    weeklyHTML += `
+                        <div class="bg-gray-50 p-4 rounded-xl border-2 border-gray-200">
+                            <h4 class="font-bold mb-2">${week}주차</h4>
+                            <p class="text-sm text-gray-500">데이터 없음</p>
+                        </div>
+                    `;
+                    continue;
+                }
+                
+                // 시책금 계산
+                const weekData = data.weekly[`week${week}`];
+                
+                // 월시책
+                const basicReward = Math.round(amount * (data.monthlyRate / 100));
+                
+                // 보험사 시상
+                let companyReward = 0;
+                const companyTiers = Object.keys(weekData.company).map(Number).sort((a, b) => b - a);
+                for (let tier of companyTiers) {
+                    if (amount >= tier) {
+                        companyReward = weekData.company[tier];
+                        break;
+                    }
+                }
+                
+                // 자체 시상
+                let selfReward = 0;
+                const selfTiers = Object.keys(weekData.self).map(Number).sort((a, b) => b - a);
+                for (let tier of selfTiers) {
+                    if (amount >= tier) {
+                        selfReward = weekData.self[tier];
+                        break;
+                    }
+                }
+                
+                // 연속가동 시상 (week1, week2 기반으로 계산)
+                const consecutiveResult = checkConsecutiveReward(weekData, week, data.name);
+                const consecutiveReward = consecutiveResult.reward;
+                const consecutiveStatus = consecutiveResult.status;
+                
+                // 4주 연속추가 시상 (중복 방지)
+                let consecutive4Reward = 0;
+                let consecutive4Status = '';
+                if (weekData.consecutive4week && weekData.consecutive4week.tiers) {
+                    const cons4Desc = weekData.consecutive4week.desc || '';
+                    const cons4Tiers = Object.keys(weekData.consecutive4week.tiers).map(Number).sort((a, b) => b - a);
+                    for (let tier of cons4Tiers) {
+                        if (amount >= tier) {
+                            if (!consecutive4DescAchieved.has(cons4Desc)) {
+                                consecutive4Reward = weekData.consecutive4week.tiers[tier];
+                                consecutive4DescAchieved.add(cons4Desc);
+                                consecutive4Status = `✓ 4주 연속추가 1차 달성`;
+                            } else {
+                                consecutive4Status = `✓ 4주 연속추가 달성 (이미 적용됨)`;
+                            }
+                            break;
+                        }
+                    }
+                }
+                
+                // 물품시상 (중복 방지)
+                let giftReward = 0;
+                let giftStatus = '';
+                if (weekData.gift && weekData.gift.tiers) {
+                    const giftDesc = weekData.gift.desc || '';
+                    const giftTiers = Object.keys(weekData.gift.tiers).map(Number).sort((a, b) => b - a);
+                    for (let tier of giftTiers) {
+                        if (amount >= tier) {
+                            if (!giftDescAchieved.has(giftDesc)) {
+                                giftReward = weekData.gift.tiers[tier];
+                                giftDescAchieved.add(giftDesc);
+                                giftStatus = `✓ 물품시상 1차 달성`;
+                            } else {
+                                giftStatus = `✓ 물품시상 달성 (이미 적용됨)`;
+                            }
+                            break;
+                        }
+                    }
+                }
+                
+                const weekTotal = basicReward + companyReward + selfReward + consecutiveReward + consecutive4Reward + giftReward;
+                totalReward += weekTotal;
+                
+                // 시뮬레이션: 다음 구간 달성 시 시책금 계산
+                let simulationHTML = '';
+                
+                // 모든 tier 수집 (중복 제거)
+                const allTiers = new Set();
+                Object.keys(weekData.company).forEach(t => allTiers.add(Number(t)));
+                Object.keys(weekData.self).forEach(t => allTiers.add(Number(t)));
+                
+                // 현재 amount보다 큰 tier만 필터링하고 정렬
+                const nextTiers = Array.from(allTiers)
+                    .filter(t => t > amount)
+                    .sort((a, b) => a - b)
+                    .slice(0, 2); // 가장 가까운 2개만
+                
+                if (nextTiers.length > 0) {
+                    simulationHTML = '<div class="mt-3 space-y-2 no-print">';
+                    
+                    nextTiers.forEach((nextTier, index) => {
+                        // 다음 tier 시책금 계산
+                        const nextBasicReward = Math.round(nextTier * (data.monthlyRate / 100));
+                        
+                        let nextCompanyReward = 0;
+                        for (let tier of companyTiers) {
+                            if (nextTier >= tier) {
+                                nextCompanyReward = weekData.company[tier];
+                                break;
+                            }
+                        }
+                        
+                        let nextSelfReward = 0;
+                        for (let tier of selfTiers) {
+                            if (nextTier >= tier) {
+                                nextSelfReward = weekData.self[tier];
+                                break;
+                            }
+                        }
+                        
+                        // 연속가동은 현재와 동일하게 유지 (조건부이므로)
+                        const nextTotal = nextBasicReward + nextCompanyReward + nextSelfReward + consecutiveReward + consecutive4Reward + giftReward;
+                        const challenge = nextTier - amount;
+                        const rewardIncrease = nextTotal - weekTotal;
+                        
+                        const bgColor = index === 0 ? 'bg-red-50 border-red-300' : 'bg-orange-50 border-orange-300';
+                        const textColor = index === 0 ? 'text-red-700' : 'text-orange-700';
+                        const label = index === 0 ? '구간 달성시 총 시책금' : '다음 구간 총 시책금';
+                        const arrow = index === 0 ? '→' : '→→';
+                        
+                        simulationHTML += `
+                            <div class="p-3 ${bgColor} border-2 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-bold ${textColor}">${arrow} ${label}</span>
+                                    <span class="text-lg font-bold ${textColor}">${nextTotal}만원</span>
+                                </div>
+                                <div class="text-xs text-gray-600 space-y-1">
+                                    <div>기존 보험료: <span class="font-bold">${nextTier}만원</span> | 도전: <span class="font-bold ${textColor}">+${challenge}만원</span></div>
+                                    <div>시책금 증가: <span class="font-bold ${textColor}">+${rewardIncrease}만원</span> (월시책 ${nextBasicReward-basicReward}만 + 주간 ${nextCompanyReward-companyReward}만 + 굿리치 ${nextSelfReward-selfReward}만)</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    simulationHTML += '</div>';
+                }
+                
+                weeklyHTML += `
+                    <div class="bg-green-50 p-4 rounded-xl border-2 border-green-200">
+                        <h4 class="font-bold mb-2">${week}주차${weekData.dateRange ? ` (${weekData.dateRange})` : ''}</h4>
+                        <p class="text-sm text-gray-600">월납보험료: <span class="font-bold text-purple-600">${amount}만원</span></p>
+                        <p class="text-sm text-gray-600">시책금: <span class="font-bold text-green-600">${weekTotal}만원</span></p>
+                        <div class="mt-2 text-xs text-gray-500">
+                            <div>월시책(익월): ${basicReward}만</div>
+                            <div>주간: ${companyReward}만</div>
+                            <div>굿리치(익월): ${selfReward}만</div>
+                            ${consecutiveReward > 0 ? `<div class="text-orange-600 font-bold">연속가동: ${consecutiveReward}만</div>` : ''}
+                            ${consecutive4Reward > 0 ? `<div class="text-red-600 font-bold">4주연속: ${consecutive4Reward}만</div>` : ''}
+                            ${giftReward > 0 ? `<div class="text-blue-600 font-bold">물품시상: ${giftReward}만</div>` : ''}
+                        </div>
+                        ${consecutiveStatus ? `<div class="mt-2 text-xs text-orange-600 font-bold">${consecutiveStatus}</div>` : ''}
+                        ${consecutive4Status ? `<div class="mt-1 text-xs text-red-600 font-bold">${consecutive4Status}</div>` : ''}
+                        ${giftStatus ? `<div class="mt-1 text-xs text-blue-600 font-bold">${giftStatus}</div>` : ''}
+                        ${simulationHTML}
+                    </div>
+                `;
+                
+                detailHTML += `
+                    <div class="bg-white p-4 rounded-xl border-2 border-gray-200">
+                        <h4 class="font-bold mb-3 text-purple-600">${week}주차${weekData.dateRange ? ` (${weekData.dateRange})` : ''}</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span>월납보험료</span>
+                                <span class="font-bold">${amount}만원</span>
+                            </div>
+                            <div class="flex justify-between text-blue-600">
+                                <span>월시책(익월) (${data.monthlyRate}%)</span>
+                                <span class="font-bold">${basicReward}만원</span>
+                            </div>
+                            <div class="flex justify-between text-green-600">
+                                <span>주간시상</span>
+                                <span class="font-bold">${companyReward}만원</span>
+                            </div>
+                            <div class="flex justify-between text-purple-600">
+                                <span>굿리치주간(익월)</span>
+                                <span class="font-bold">${selfReward}만원</span>
+                            </div>
+                            ${consecutiveReward > 0 ? `
+                            <div class="flex justify-between text-orange-600">
+                                <span>연속가동 (조건부)</span>
+                                <span class="font-bold">${consecutiveReward}만원</span>
+                            </div>
+                            ` : ''}
+                            ${consecutive4Reward > 0 ? `
+                            <div class="flex justify-between text-red-600">
+                                <span>4주연속 (조건부)</span>
+                                <span class="font-bold">${consecutive4Reward}만원</span>
+                            </div>
+                            ` : ''}
+                            ${giftReward > 0 ? `
+                            <div class="flex justify-between text-blue-600">
+                                <span>물품시상 (조건부)</span>
+                                <span class="font-bold">${giftReward}만원</span>
+                            </div>
+                            ` : ''}
+                            <div class="flex justify-between pt-2 border-t-2 border-gray-200 font-bold">
+                                <span>주차 합계</span>
+                                <span class="text-purple-600">${weekTotal}만원</span>
+                            </div>
+                        </div>
+                        ${consecutiveStatus || consecutive4Status || giftStatus ? `
+                        <div class="mt-3 p-2 bg-yellow-50 rounded text-xs">
+                            <div class="font-bold text-yellow-800 mb-1">📌 조건부 달성</div>
+                            ${consecutiveStatus ? `<div class="text-gray-700">${consecutiveStatus}</div>` : ''}
+                            ${consecutive4Status ? `<div class="text-gray-700">${consecutive4Status}</div>` : ''}
+                            ${giftStatus ? `<div class="text-gray-700">${giftStatus}</div>` : ''}
+                            <div class="text-gray-600 mt-1">※ 차주 연속 달성 시 확정 지급</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+            
+            document.getElementById('weeklyData').innerHTML = weeklyHTML;
+            
+            // 전체 시뮬레이션 계산
+            let totalSimulationHTML = '';
+            
+            // 전체 tier 수집
+            const allWeekTiers = new Set();
+            for (let w = 1; w <= 4; w++) {
+                const wd = data.weekly[`week${w}`];
+                Object.keys(wd.company).forEach(t => allWeekTiers.add(Number(t)));
+                Object.keys(wd.self).forEach(t => allWeekTiers.add(Number(t)));
+            }
+            
+            // 평균 구간 계산 (다음 목표 제시)
+            const avgAmount = Math.floor(totalAmount / 4);
+            const nextGoals = Array.from(allWeekTiers)
+                .filter(t => t > avgAmount)
+                .sort((a, b) => a - b)
+                .slice(0, 2);
+            
+            if (nextGoals.length > 0) {
+                totalSimulationHTML = '<div class="bg-white p-6 rounded-2xl border-2 border-purple-200 mb-4"><h3 class="text-lg font-bold mb-4 text-purple-800">📊 주차별 업적 목표 시뮬레이션</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+                
+                nextGoals.forEach((goal, idx) => {
+                    const bgColor = idx === 0 ? 'bg-red-50' : 'bg-orange-50';
+                    const textColor = idx === 0 ? 'text-red-700' : 'text-orange-700';
+                    const borderColor = idx === 0 ? 'border-red-300' : 'border-orange-300';
+                    const label = idx === 0 ? '🎯 1차 목표' : '🎯 2차 목표';
+                    
+                    totalSimulationHTML += `
+                        <div class="p-4 ${bgColor} border-2 ${borderColor} rounded-xl">
+                            <h4 class="font-bold ${textColor} mb-3">${label}: 주차별 ${goal}만원 달성</h4>
+                            <div class="text-sm space-y-2">
+                                <div class="flex justify-between">
+                                    <span>현재 평균:</span>
+                                    <span class="font-bold">${avgAmount}만원</span>
+                                </div>
+                                <div class="flex justify-between ${textColor}">
+                                    <span>주차별 도전:</span>
+                                    <span class="font-bold">+${goal - avgAmount}만원</span>
+                                </div>
+                                <div class="p-2 bg-white rounded">
+                                    <div class="text-xs text-gray-600">
+                                        💡 각 주차마다 ${goal}만원씩 달성하면<br>
+                                        더 높은 시상 구간에 진입합니다!
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                totalSimulationHTML += '</div></div>';
+            }
+            
+            document.getElementById('totalSimulation').innerHTML = totalSimulationHTML;
+            
+            // 백백천천 시상금 계산 (한 달 합계 기준)
+            let baekbaekReward = 0;
+            if (data.baekbaek && totalAmount >= 50) {
+                const baekbaekTiers = Object.keys(data.baekbaek).map(Number).sort((a, b) => b - a);
+                for (let tier of baekbaekTiers) {
+                    if (totalAmount >= tier) {
+                        baekbaekReward = data.baekbaek[tier];
+                        break;
+                    }
+                }
+            }
+            
+            // 총 시책금 결과 표시
+            document.getElementById('resultCompanyName').textContent = data.name;
+            document.getElementById('grandTotal').textContent = `${totalReward}만원`;
+            document.getElementById('totalAmount').textContent = `${totalAmount}만원`;
+            
+            // 백백천천 표시
+            const baekbaekElement = document.getElementById('baekbaekReward');
+            if (baekbaekReward > 0) {
+                baekbaekElement.innerHTML = `
+                    <div class="mt-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-sm font-bold text-yellow-800">💰 백백천천 시상금</span>
+                                <span class="text-xs text-gray-600 ml-2">(익월 지급)</span>
+                            </div>
+                            <span class="text-2xl font-black text-yellow-700">+${baekbaekReward}만원</span>
+                        </div>
+                        <div class="mt-2 text-xs text-gray-600">
+                            월납보험료 ${totalAmount}만원 달성
+                        </div>
+                    </div>
+                `;
+                baekbaekElement.style.display = 'block';
+            } else {
+                baekbaekElement.style.display = 'none';
+            }
+            
+            document.getElementById('detailBreakdown').innerHTML = detailHTML;
+            document.getElementById('resultSection').style.display = 'block';
+        }
+
+        // 선택 해제
+        function clearSelection() {
+            selectedEmployee = null;
+            document.getElementById('employeeInfo').style.display = 'none';
+            document.getElementById('resultSection').style.display = 'none';
+        }
+
+        // ==================== 인쇄 기능 ====================
+
+        // 개별 사원 인쇄
+        function printEmployee() {
+            if (!selectedEmployee) {
+                showToast('인쇄할 사원을 선택해주세요!', 'error');
+                return;
+            }
+            
+            window.print();
+        }
+
+        // 선택된 사원 수 업데이트
+        function updateSelectedCount() {
+            const checkboxes = document.querySelectorAll('.employee-checkbox:checked');
+            document.getElementById('selectedCount').textContent = checkboxes.length;
+        }
+
+        // 전체 선택
+        function selectAllEmployees() {
+            const checkboxes = document.querySelectorAll('.employee-checkbox');
+            checkboxes.forEach(cb => cb.checked = true);
+            updateSelectedCount();
+        }
+
+        // 전체 해제
+        function deselectAllEmployees() {
+            const checkboxes = document.querySelectorAll('.employee-checkbox');
+            checkboxes.forEach(cb => cb.checked = false);
+            updateSelectedCount();
+        }
+
+        // 선택된 사원들 일괄 인쇄
+        function printSelectedEmployees() {
+            const checkboxes = document.querySelectorAll('.employee-checkbox:checked');
+            
+            if (checkboxes.length === 0) {
+                showToast('인쇄할 사원을 선택해주세요!', 'error');
+                return;
+            }
+            
+            // 선택된 사원 데이터 수집
+            const selectedEmployees = [];
+            checkboxes.forEach(cb => {
+                try {
+                    const empData = JSON.parse(cb.getAttribute('data-employee'));
+                    selectedEmployees.push(empData);
+                } catch (e) {
+                    console.error('사원 데이터 파싱 오류:', e);
+                }
+            });
+            
+            if (selectedEmployees.length === 0) {
+                showToast('선택된 사원 데이터를 불러올 수 없습니다!', 'error');
+                return;
+            }
+            
+            // 인쇄용 HTML 생성
+            const printHTML = generateBulkPrintHTML(selectedEmployees);
+            
+            // 새 창에서 인쇄
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(printHTML);
+            printWindow.document.close();
+            
+            // 로드 후 인쇄
+            printWindow.onload = function() {
+                printWindow.print();
+                // 인쇄 완료 후 창 닫기
+                setTimeout(() => {
+                    printWindow.close();
+                }, 100);
+            };
+            
+            showToast(`✅ ${selectedEmployees.length}명의 인쇄 화면을 준비했습니다!`, 'success');
+        }
+
+        // 일괄 인쇄용 HTML 생성
+        function generateBulkPrintHTML(employees) {
+            const data = insuranceData[currentCompany];
+            let html = `
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시책금 계산 결과 - 일괄 인쇄</title>
+    <script src="https://cdn.tailwindcss.com"><` + `/script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+        
+        * {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        @page {
+            size: A4;
+            margin: 8mm;
+        }
+        
+        body {
+            background: white;
+            font-size: 7pt;
+        }
+        
+        .print-page {
+            page-break-after: always;
+            padding: 5px;
+        }
+        
+        .print-page:last-child {
+            page-break-after: auto;
+        }
+        
+        * {
+            page-break-inside: avoid;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        
+        .bg-green-50 { background-color: #f0fdf4; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .bg-purple-50 { background-color: #faf5ff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .bg-white { background-color: #ffffff; }
+        
+        h1 { font-size: 12pt; margin: 0 0 2px 0; font-weight: 900; }
+        h3 { font-size: 8pt; margin: 0 0 2px 0; font-weight: 700; }
+        h4 { font-size: 7pt; margin: 0; font-weight: 700; }
+        p { font-size: 7pt; margin: 0; }
+        
+        .text-xs { font-size: 7pt !important; }
+        .text-2xl { font-size: 18pt !important; }
+        
+        .mb-2 { margin-bottom: 2px; }
+        .p-2 { padding: 2px; }
+        .p-3 { padding: 3px; }
+        
+        .grid { display: grid; }
+        .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+        .gap-2 { gap: 2px; }
+        
+        .rounded { border-radius: 4px; }
+        .border { border: 1px solid #e5e7eb; }
+        .border-b { border-bottom: 1px solid #e5e7eb; }
+        
+        .text-center { text-align: center; }
+        .text-gray-600 { color: #4b5563; }
+        .text-purple-600 { color: #9333ea; }
+        .text-green-600 { color: #16a34a; }
+        .text-blue-600 { color: #2563eb; }
+        .text-orange-600 { color: #ea580c; }
+        .text-red-600 { color: #dc2626; }
+        
+        .font-bold { font-weight: 700; }
+        .font-black { font-weight: 900; }
+        
+        .flex { display: flex; }
+        .justify-between { justify-content: space-between; }
+        .border-t { border-top: 1px solid #e5e7eb; }
+        .pt-1 { padding-top: 1px; }
+    </style>
+</head>
+<body>
+`;
+            
+            // 각 사원별로 페이지 생성
+            employees.forEach((emp, index) => {
+                html += generateEmployeePrintPage(emp, data);
+            });
+            
+            html += `
+</body>
+</html>
+`;
+            
+            return html;
+        }
+
+        // 개별 사원 인쇄 페이지 생성
+        function generateEmployeePrintPage(employee, data) {
+            let totalReward = 0;
+            let totalAmount = 0;
+            let weeklyHTML = '';
+            let detailHTML = '';
+            
+            // 연속가동 중복 방지
+            const consecutiveDescAchieved = new Set();
+            const consecutive4DescAchieved = new Set();
+            const giftDescAchieved = new Set();
+            
+            for (let week = 1; week <= 4; week++) {
+                const amount = employee.weeks[`week${week}`] || 0;
+                totalAmount += amount;
+                
+                if (amount === 0) {
+                    weeklyHTML += `<div class="bg-gray-50 p-2 rounded text-center"><p class="text-xs text-gray-400">${week}주차<br>데이터 없음</p></div>`;
+                    continue;
+                }
+                
+                const weekData = data.weekly[`week${week}`];
+                const basicReward = Math.round(amount * (data.monthlyRate / 100));
+                
+                // 보험사 시상
+                let companyReward = 0;
+                const companyTiers = Object.keys(weekData.company).map(Number).sort((a, b) => b - a);
+                for (let tier of companyTiers) {
+                    if (amount >= tier) {
+                        companyReward = weekData.company[tier];
+                        break;
+                    }
+                }
+                
+                // 자체 시상
+                let selfReward = 0;
+                const selfTiers = Object.keys(weekData.self).map(Number).sort((a, b) => b - a);
+                for (let tier of selfTiers) {
+                    if (amount >= tier) {
+                        selfReward = weekData.self[tier];
+                        break;
+                    }
+                }
+                
+                // 연속가동
+                let consecutiveReward = 0;
+                if (weekData.consecutive && weekData.consecutive.tiers) {
+                    const consDesc = weekData.consecutive.desc || '';
+                    const consTiers = Object.keys(weekData.consecutive.tiers).map(Number).sort((a, b) => b - a);
+                    for (let tier of consTiers) {
+                        if (amount >= tier && !consecutiveDescAchieved.has(consDesc)) {
+                            consecutiveReward = weekData.consecutive.tiers[tier];
+                            consecutiveDescAchieved.add(consDesc);
+                            break;
+                        }
+                    }
+                }
+                
+                // 4주 연속추가
+                let consecutive4Reward = 0;
+                if (weekData.consecutive4week && weekData.consecutive4week.tiers) {
+                    const cons4Desc = weekData.consecutive4week.desc || '';
+                    const cons4Tiers = Object.keys(weekData.consecutive4week.tiers).map(Number).sort((a, b) => b - a);
+                    for (let tier of cons4Tiers) {
+                        if (amount >= tier && !consecutive4DescAchieved.has(cons4Desc)) {
+                            consecutive4Reward = weekData.consecutive4week.tiers[tier];
+                            consecutive4DescAchieved.add(cons4Desc);
+                            break;
+                        }
+                    }
+                }
+                
+                // 물품시상
+                let giftReward = 0;
+                if (weekData.gift && weekData.gift.tiers) {
+                    const giftDesc = weekData.gift.desc || '';
+                    const giftTiers = Object.keys(weekData.gift.tiers).map(Number).sort((a, b) => b - a);
+                    for (let tier of giftTiers) {
+                        if (amount >= tier && !giftDescAchieved.has(giftDesc)) {
+                            giftReward = weekData.gift.tiers[tier];
+                            giftDescAchieved.add(giftDesc);
+                            break;
+                        }
+                    }
+                }
+                
+                const weekTotal = basicReward + companyReward + selfReward + consecutiveReward + consecutive4Reward + giftReward;
+                totalReward += weekTotal;
+                
+                // 주차별 간단 표시
+                weeklyHTML += `
+                    <div class="bg-green-50 p-2 rounded border border-green-200">
+                        <p class="font-bold text-xs mb-1">${week}주차</p>
+                        <p class="text-xs">월납: <span class="font-bold text-purple-600">${amount}만</span></p>
+                        <p class="text-xs">시책: <span class="font-bold text-green-600">${weekTotal}만</span></p>
+                    </div>
+                `;
+                
+                // 상세 내역
+                detailHTML += `
+                    <div class="bg-white p-2 rounded border border-gray-200">
+                        <h4 class="font-bold text-xs text-purple-600 mb-1">${week}주차</h4>
+                        <div class="space-y-0.5 text-xs">
+                            <div class="flex justify-between"><span>월납보험료</span><span class="font-bold">${amount}만원</span></div>
+                            <div class="flex justify-between text-blue-600"><span>월시책(익월) (${data.monthlyRate}%)</span><span class="font-bold">${basicReward}만원</span></div>
+                            <div class="flex justify-between text-green-600"><span>주간시상</span><span class="font-bold">${companyReward}만원</span></div>
+                            <div class="flex justify-between text-purple-600"><span>굿리치주간(익월)</span><span class="font-bold">${selfReward}만원</span></div>
+                            ${consecutiveReward > 0 ? `<div class="flex justify-between text-orange-600"><span>연속가동</span><span class="font-bold">${consecutiveReward}만원</span></div>` : ''}
+                            ${consecutive4Reward > 0 ? `<div class="flex justify-between text-red-600"><span>4주연속</span><span class="font-bold">${consecutive4Reward}만원</span></div>` : ''}
+                            ${giftReward > 0 ? `<div class="flex justify-between text-blue-600"><span>물품시상</span><span class="font-bold">${giftReward}만원</span></div>` : ''}
+                            <div class="flex justify-between pt-1 border-t font-bold text-purple-600"><span>합계</span><span>${weekTotal}만원</span></div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            return `
+<div class="print-page">
+    <div class="mb-2 pb-2 border-b border-gray-300">
+        <h1 class="text-xl font-black text-purple-600" style="font-size: 18pt;">${data.name}</h1>
+        <p class="text-xs text-gray-600">출력일: ${new Date().toLocaleDateString('ko-KR')}</p>
+    </div>
+    
+    <div class="bg-purple-50 p-2 rounded mb-2 border border-purple-200">
+        <div class="grid grid-cols-4 gap-2 text-xs">
+            <div><p class="text-gray-600">이름</p><p class="font-bold">${employee.name}</p></div>
+            <div><p class="text-gray-600">사업부</p><p class="font-bold">${employee.dept || '-'}</p></div>
+            <div><p class="text-gray-600">본부</p><p class="font-bold">${employee.branch}</p></div>
+            <div><p class="text-gray-600">지점</p><p class="font-bold">${employee.office}</p></div>
+        </div>
+    </div>
+    
+    <h3 class="font-bold text-xs mb-2">📊 ${data.name} 주차별 월납보험료 및 시책금</h3>
+    <div class="grid grid-cols-4 gap-2 mb-2">
+        ${weeklyHTML}
+    </div>
+    
+    <div class="bg-gradient-to-r from-purple-50 to-pink-50 p-3 rounded text-center mb-2 border border-purple-200">
+        <p class="text-gray-700 text-xs">💎 <span class="font-black" style="font-size: 14pt;">${data.name}</span> 총 시책금</p>
+        <p class="text-2xl font-black text-purple-600">${totalReward}만원</p>
+        <p class="text-xs text-gray-600">총 월납보험료: <span class="font-bold">${totalAmount}만원</span></p>
+    </div>
+    
+    <h3 class="font-bold text-xs mb-2">📋 주차별 상세 내역</h3>
+    <div class="grid grid-cols-2 gap-2">
+        ${detailHTML}
+    </div>
+</div>
+`;
+        }
+
+        // ==================== 시책 설정 탭 ====================
+
+        // 보험사 탭 전환
+        function showPolicyCompany(company) {
+            currentPolicyCompany = company;
+            
+            // 탭 버튼 스타일
+            document.querySelectorAll('[id^="policy-tab-"]').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('bg-gray-100');
+            });
+            document.getElementById(`policy-tab-${company}`).classList.add('active');
+            document.getElementById(`policy-tab-${company}`).classList.remove('bg-gray-100');
+            
+            // 설정 폼 생성
+            generatePolicySettingsForm(company);
+        }
+
+        // 설정 폼 생성
+        function generatePolicySettingsForm(company) {
+            const data = insuranceData[company];
+            
+            let html = `
+                <div class="bg-white rounded-2xl p-6 card-shadow">
+                    <h2 class="text-2xl font-bold mb-6 text-gray-800">${data.name} 설정</h2>
+                    
+                    ${company === 'db' ? `
+                    <!-- 년월 설정 (DB손보에서만 표시) -->
+                    <div class="bg-yellow-50 p-4 rounded-lg mb-6">
+                        <h3 class="text-lg font-bold text-yellow-800 mb-4">📅 년월 설정</h3>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">현재 시책 년월</label>
+                            <input type="text" id="currentMonth" value="${insuranceData.currentMonth || '2026년 1월'}" 
+                                   class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl"
+                                   placeholder="예: 2026년 2월">
+                            <p class="text-xs text-gray-600 mt-2">💡 메인 헤더와 모든 보험사에 공통 적용됩니다</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 주차별 기간 설정 (DB손보에서만 표시) -->
+                    <div class="bg-green-50 p-4 rounded-lg mb-6">
+                        <h3 class="text-lg font-bold text-green-800 mb-4">📆 주차별 기간 설정</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">1주차</label>
+                                <input type="text" id="week1_dateRange" value="${data.weekly.week1.dateRange || ''}" 
+                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl"
+                                       placeholder="예: 2/1~2/8">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">2주차</label>
+                                <input type="text" id="week2_dateRange" value="${data.weekly.week2.dateRange || ''}" 
+                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl"
+                                       placeholder="예: 2/9~2/15">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">3주차</label>
+                                <input type="text" id="week3_dateRange" value="${data.weekly.week3.dateRange || ''}" 
+                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl"
+                                       placeholder="예: 2/16~2/22">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">4주차</label>
+                                <input type="text" id="week4_dateRange" value="${data.weekly.week4.dateRange || ''}" 
+                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl"
+                                       placeholder="예: 2/23~2/29">
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-600 mt-2">💡 계산기 화면의 주차별 박스에 표시됩니다 (모든 보험사 공통 적용)</p>
+                    </div>
+                    ` : ''}
+                    
+                    ${company === 'monthly' ? `
+                    <!-- 이달주력사 회사명 설정 -->
+                    <div class="bg-purple-50 p-4 rounded-lg mb-6">
+                        <h3 class="text-lg font-bold text-purple-800 mb-4">🏢 이달주력사 회사명</h3>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">표시할 회사명</label>
+                            <input type="text" id="${company}_displayName" value="${data.displayName || '이달주력사'}" 
+                                   class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl"
+                                   placeholder="예: 현대해상">
+                            <p class="text-xs text-gray-600 mt-2">💡 계산기에서 이 이름으로 표시됩니다</p>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <!-- 월시책 설정 -->
+                    <div class="bg-blue-50 p-4 rounded-lg mb-6">
+                        <h3 class="text-lg font-bold text-blue-800 mb-4">📌 월시책 (익월 지급)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">보장성(人) 월납 지급률 (%)</label>
+                                <input type="number" id="${company}_monthlyRate" value="${data.monthlyRate}" 
+                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl">
+                            </div>
+                            ${data.petRate !== undefined ? `
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">펫보험 월납 지급률 (%)</label>
+                                <input type="number" id="${company}_petRate" value="${data.petRate}" 
+                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl">
+                            </div>
+                            ` : ''}
+                            ${data.selfMonthlyRate !== undefined ? `
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">자체 월시책 지급률 (%)</label>
+                                <input type="number" id="${company}_selfMonthlyRate" value="${data.selfMonthlyRate}" 
+                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl">
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <!-- 주간 시책 설정 -->
+                    <div class="space-y-6">
+            `;
+
+            // 각 주차별 설정
+            for (let week = 1; week <= 4; week++) {
+                const weekData = data.weekly[`week${week}`];
+                
+                html += `
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-bold text-green-800 mb-4">${week}주차 시책</h3>
+                        
+                        <!-- 주간시상 -->
+                        <div class="mb-4">
+                            <h4 class="font-bold text-gray-700 mb-2">🏢 주간시상 (2차년 지급)</h4>
+                            <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
+                `;
+                
+                const companyTiers = [10, 20, 30, 50, 70, 100, 150, 200];
+                companyTiers.forEach(tier => {
+                    const value = weekData.company[tier] || 0;
+                    html += `
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">${tier}만원</label>
+                            <input type="number" id="${company}_week${week}_company_${tier}" value="${value}" 
+                                   class="w-full px-2 py-2 border-2 border-gray-300 rounded-lg text-sm"
+                                   placeholder="0">
+                        </div>
+                    `;
+                });
+                
+                html += `
+                            </div>
+                        </div>
+
+                        <!-- 굿리치주간 (익월) -->
+                        <div>
+                            <h4 class="font-bold text-gray-700 mb-2">💰 굿리치주간 (익월 지급)</h4>
+                            <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
+                `;
+                
+                const selfTiers = [10, 20, 30, 50, 70, 100, 150, 200, 300, 500, 1000];
+                selfTiers.forEach(tier => {
+                    const value = weekData.self[tier] || 0;
+                    html += `
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">${tier}만원</label>
+                            <input type="number" id="${company}_week${week}_self_${tier}" value="${value}" 
+                                   class="w-full px-2 py-2 border-2 border-gray-300 rounded-lg text-sm"
+                                   placeholder="0">
+                        </div>
+                    `;
+                });
+                
+                html += `
+                            </div>
+                        </div>
+
+                        <!-- 연속가동 시상 -->
+                        <div class="mt-4">
+                            <h4 class="font-bold text-gray-700 mb-2">🔥 연속가동 시상 (조건부)</h4>
+                            <div class="mb-2">
+                                <label class="block text-xs text-gray-600 mb-1">조건 설명</label>
+                                <input type="text" id="${company}_week${week}_cons_desc" 
+                                       value="${weekData.consecutive?.desc || ''}"
+                                       class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm"
+                                       placeholder="예: 12.15~12.31 + 1.1~1.18">
+                            </div>
+                            <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
+                `;
+                
+                const consTiers = [10, 20, 30, 50, 70, 100];
+                consTiers.forEach(tier => {
+                    const value = weekData.consecutive?.tiers?.[tier] || 0;
+                    html += `
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">${tier}만원</label>
+                            <input type="number" id="${company}_week${week}_cons_${tier}" value="${value}" 
+                                   class="w-full px-2 py-2 border-2 border-orange-200 rounded-lg text-sm"
+                                   placeholder="0">
+                        </div>
+                    `;
+                });
+                
+                html += `
+                            </div>
+                        </div>
+                `;
+                
+                // 4주차만 추가 항목 (if문으로 분리)
+                if (week === 4) {
+                    html += `
+                        <!-- 4주 연속추가 (4주차만) -->
+                        <div class="mt-4">
+                            <h4 class="font-bold text-gray-700 mb-2">🎯 4주 연속추가 시상 (조건부)</h4>
+                            <div class="mb-2">
+                                <label class="block text-xs text-gray-600 mb-1">조건 설명</label>
+                                <input type="text" id="${company}_week${week}_cons4_desc" 
+                                       value="${weekData.consecutive4week?.desc || ''}"
+                                       class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm"
+                                       placeholder="예: 1.26~1.31 + 2.1~2.8">
+                            </div>
+                            <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
+                    `;
+                    
+                    consTiers.forEach(tier => {
+                        const value = weekData.consecutive4week?.tiers?.[tier] || 0;
+                        html += `
+                            <div>
+                                <label class="block text-xs text-gray-600 mb-1">${tier}만원</label>
+                                <input type="number" id="${company}_week${week}_cons4_${tier}" value="${value}" 
+                                       class="w-full px-2 py-2 border-2 border-red-200 rounded-lg text-sm"
+                                       placeholder="0">
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+
+                        <!-- 물품시상 (4주차만) -->
+                        <div class="mt-4">
+                            <h4 class="font-bold text-gray-700 mb-2">🎁 물품시상 (조건부)</h4>
+                            <div class="mb-2">
+                                <label class="block text-xs text-gray-600 mb-1">조건 설명</label>
+                                <input type="text" id="${company}_week${week}_gift_desc" 
+                                       value="${weekData.gift?.desc || ''}"
+                                       class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm"
+                                       placeholder="예: 1.26~1.31 + 2.1~2.8">
+                            </div>
+                            <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
+                    `;
+                    
+                    consTiers.forEach(tier => {
+                        const value = weekData.gift?.tiers?.[tier] || 0;
+                        html += `
+                            <div>
+                                <label class="block text-xs text-gray-600 mb-1">${tier}만원</label>
+                                <input type="number" id="${company}_week${week}_gift_${tier}" value="${value}" 
+                                       class="w-full px-2 py-2 border-2 border-blue-200 rounded-lg text-sm"
+                                       placeholder="0">
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                html += `
+                    </div>
+                `;
+            }
+
+            html += `
+                    </div>
+
+                    <!-- 저장 버튼 -->
+                    <div class="flex justify-end mt-6">
+                        <button onclick="savePolicyCompanyData('${company}')" 
+                                class="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl hover:shadow-lg transition-all">
+                            💾 ${data.name} 저장
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('policySettings').innerHTML = html;
+        }
+
+        // 보험사 시책 데이터 저장
+        function savePolicyCompanyData(company) {
+            const data = insuranceData[company];
+
+            // DB손보에서 년월 설정 저장 (전체 공통)
+            if (company === 'db') {
+                const newMonth = document.getElementById('currentMonth').value;
+                insuranceData.currentMonth = newMonth;
+                updateHeaderMonth();
+                
+                // 주차별 기간 저장 (전체 보험사 공통 적용)
+                for (let week = 1; week <= 4; week++) {
+                    const newDateRange = document.getElementById(`week${week}_dateRange`).value;
+                    ['db', 'heungkuk', 'meritz', 'kb', 'monthly'].forEach(comp => {
+                        if (insuranceData[comp] && insuranceData[comp].weekly && insuranceData[comp].weekly[`week${week}`]) {
+                            insuranceData[comp].weekly[`week${week}`].dateRange = newDateRange;
+                        }
+                    });
+                }
+            }
+
+            // 이달주력사의 경우 displayName 저장
+            if (company === 'monthly') {
+                const newDisplayName = document.getElementById(`${company}_displayName`).value;
+                data.displayName = newDisplayName;
+                updateMonthlyCompanyName(newDisplayName);
+            }
+
+            // 월시책
+            data.monthlyRate = parseInt(document.getElementById(`${company}_monthlyRate`).value);
+            if (data.petRate !== undefined) {
+                data.petRate = parseInt(document.getElementById(`${company}_petRate`).value);
+            }
+            if (data.selfMonthlyRate !== undefined) {
+                data.selfMonthlyRate = parseInt(document.getElementById(`${company}_selfMonthlyRate`).value);
+            }
+
+            // 주간 시책
+            for (let week = 1; week <= 4; week++) {
+                const companyTiers = {};
+                const selfTiers = {};
+                
+                // 보험사 시상
+                [10, 20, 30, 50, 70, 100, 150, 200].forEach(tier => {
+                    const input = document.getElementById(`${company}_week${week}_company_${tier}`);
+                    if (input && input.value) {
+                        const value = parseInt(input.value);
+                        if (value > 0) {
+                            companyTiers[tier] = value;
+                        }
+                    }
+                });
+                
+                // 자체 시상
+                [10, 20, 30, 50, 70, 100, 150, 200, 300, 500, 1000].forEach(tier => {
+                    const input = document.getElementById(`${company}_week${week}_self_${tier}`);
+                    if (input && input.value) {
+                        const value = parseInt(input.value);
+                        if (value > 0) {
+                            selfTiers[tier] = value;
+                        }
+                    }
+                });
+                
+                // 연속가동 시상
+                const consecutiveTiers = {};
+                const consDesc = document.getElementById(`${company}_week${week}_cons_desc`)?.value || '';
+                [10, 20, 30, 50, 70, 100].forEach(tier => {
+                    const input = document.getElementById(`${company}_week${week}_cons_${tier}`);
+                    if (input && input.value) {
+                        const value = parseInt(input.value);
+                        if (value > 0) {
+                            consecutiveTiers[tier] = value;
+                        }
+                    }
+                });
+                
+                // 4주 연속추가 시상 (4주차만)
+                let consecutive4week = null;
+                if (week === 4) {
+                    const consecutive4Tiers = {};
+                    const cons4Desc = document.getElementById(`${company}_week${week}_cons4_desc`)?.value || '';
+                    [10, 20, 30, 50, 70, 100].forEach(tier => {
+                        const input = document.getElementById(`${company}_week${week}_cons4_${tier}`);
+                        if (input && input.value) {
+                            const value = parseInt(input.value);
+                            if (value > 0) {
+                                consecutive4Tiers[tier] = value;
+                            }
+                        }
+                    });
+                    
+                    if (Object.keys(consecutive4Tiers).length > 0) {
+                        consecutive4week = {
+                            desc: cons4Desc,
+                            tiers: consecutive4Tiers
+                        };
+                    }
+                }
+                
+                // 물품시상 (4주차만)
+                let gift = null;
+                if (week === 4) {
+                    const giftTiers = {};
+                    const giftDesc = document.getElementById(`${company}_week${week}_gift_desc`)?.value || '';
+                    [10, 20, 30, 50, 70, 100].forEach(tier => {
+                        const input = document.getElementById(`${company}_week${week}_gift_${tier}`);
+                        if (input && input.value) {
+                            const value = parseInt(input.value);
+                            if (value > 0) {
+                                giftTiers[tier] = value;
+                            }
+                        }
+                    });
+                    
+                    if (Object.keys(giftTiers).length > 0) {
+                        gift = {
+                            desc: giftDesc,
+                            tiers: giftTiers
+                        };
+                    }
+                }
+                
+                data.weekly[`week${week}`] = {
+                    dateRange: data.weekly[`week${week}`].dateRange || '',
+                    company: companyTiers,
+                    self: selfTiers
+                };
+                
+                if (Object.keys(consecutiveTiers).length > 0) {
+                    data.weekly[`week${week}`].consecutive = {
+                        desc: consDesc,
+                        tiers: consecutiveTiers
+                    };
+                }
+                
+                if (consecutive4week) {
+                    data.weekly[`week${week}`].consecutive4week = consecutive4week;
+                }
+                
+                if (gift) {
+                    data.weekly[`week${week}`].gift = gift;
+                }
+            }
+
+            localStorage.setItem('insurance_policy_data', JSON.stringify(insuranceData));
+            showToast(`✅ ${data.name} 시책 데이터가 저장되었습니다!`, 'success');
+        }
+
+        // 이달주력사 이름 업데이트
+        function updateMonthlyCompanyName(name) {
+            const displayName = name.split('\n');
+            document.getElementById('monthly-company-name').innerHTML = displayName.join('<br>');
+        }
+
+        // 전체 시책 데이터 저장
+        function saveAllPolicyData() {
+            localStorage.setItem('insurance_policy_data', JSON.stringify(insuranceData));
+            showToast('✅ 전체 시책 데이터가 저장되었습니다!', 'success');
+        }
+
+        // 시책 데이터 내보내기
+        function exportPolicyData() {
+            const dataStr = JSON.stringify(insuranceData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `보험사시책데이터_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+            showToast('✅ 시책 데이터 파일이 다운로드되었습니다!', 'success');
+        }
+
+        // 시책 데이터 가져오기
+        function importPolicyData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    insuranceData = JSON.parse(e.target.result);
+                    localStorage.setItem('insurance_policy_data', JSON.stringify(insuranceData));
+                    
+                    // 이달주력사 이름 업데이트
+                    if (insuranceData.monthly && insuranceData.monthly.displayName) {
+                        updateMonthlyCompanyName(insuranceData.monthly.displayName);
+                    }
+                    
+                    showToast('✅ 시책 데이터를 불러왔습니다!', 'success');
+                    showPolicyCompany(currentPolicyCompany);
+                } catch (error) {
+                    showToast('❌ 파일을 읽는 중 오류가 발생했습니다: ' + error.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ==================== 인별 데이터 관리 탭 ====================
+
+        // 보험사 선택 (인별 데이터)
+        function selectEmployeeCompany(company) {
+            currentEmployeeCompany = company;
+            
+            document.querySelectorAll('[id^="emp-tab-"]').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('bg-gray-100');
+            });
+            document.getElementById(`emp-tab-${company}`).classList.add('active');
+            document.getElementById(`emp-tab-${company}`).classList.remove('bg-gray-100');
+            
+            updateCurrentSelection();
+            updateDataStatus();
+        }
+
+        // 주차 선택
+        function selectWeek(week) {
+            currentWeek = week;
+            
+            document.querySelectorAll('.tab-button[id^="week-"]').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('bg-gray-100');
+            });
+            document.getElementById(`week-${week}`).classList.add('active');
+            document.getElementById(`week-${week}`).classList.remove('bg-gray-100');
+            
+            updateCurrentSelection();
+        }
+
+        // 현재 선택 업데이트
+        function updateCurrentSelection() {
+            const weekLabel = currentWeek === 0 ? '전주차(전월)' : `${currentWeek}주차`;
+            document.getElementById('currentSelection').textContent = 
+                `${companyNames[currentEmployeeCompany]} ${weekLabel}`;
+        }
+
+        // 붙여넣기 영역 초기화
+        function clearPasteArea() {
+            document.getElementById('pasteArea').value = '';
+            document.getElementById('previewSection').style.display = 'none';
+        }
+
+        // 데이터 파싱 및 저장
+        function parseAndSaveData() {
+            const pasteText = document.getElementById('pasteArea').value.trim();
+            
+            if (!pasteText) {
+                showToast('데이터를 붙여넣어주세요!', 'error');
+                return;
+            }
+
+            try {
+                // 탭으로 구분된 데이터 파싱
+                const rows = pasteText.split('\n').filter(row => row.trim());
+                
+                if (rows.length < 2) {
+                    showToast('최소 2줄 이상의 데이터가 필요합니다 (헤더 + 데이터)', 'error');
+                    return;
+                }
+
+                // 헤더 행 파싱
+                const headers = rows[0].split('\t').map(h => h.trim());
+                
+                // 필수 컬럼 확인
+                const nameIdx = headers.findIndex(h => h.includes('이름'));
+                const deptIdx = headers.findIndex(h => h.includes('사업부'));
+                const branchIdx = headers.findIndex(h => h.includes('본부'));
+                const officeIdx = headers.findIndex(h => h.includes('지점'));
+                const amountIdx = headers.findIndex(h => h.includes('월납보험료'));
+
+                if (nameIdx === -1 || branchIdx === -1 || officeIdx === -1 || amountIdx === -1) {
+                    showToast('필수 컬럼(이름, 본부, 지점, 월납보험료)이 없습니다!', 'error');
+                    return;
+                }
+
+                // 데이터 파싱
+                const parsedData = [];
+                
+                for (let i = 1; i < rows.length; i++) {
+                    const cols = rows[i].split('\t');
+                    
+                    if (cols.length < headers.length - 3) continue;
+                    
+                    const name = cols[nameIdx]?.trim();
+                    const dept = deptIdx !== -1 ? cols[deptIdx]?.trim() : '';
+                    const branch = cols[branchIdx]?.trim();
+                    const office = cols[officeIdx]?.trim();
+                    const amountStr = cols[amountIdx]?.trim().replace(/,/g, '');
+                    const amount = Math.floor(parseInt(amountStr) / 10000);
+
+                    if (name && branch && office && !isNaN(amount) && amount > 0) {
+                        parsedData.push({
+                            name: name,
+                            dept: dept,
+                            branch: branch,
+                            office: office,
+                            amount: amount
+                        });
+                    }
+                }
+
+                if (parsedData.length === 0) {
+                    showToast('파싱된 데이터가 없습니다. 데이터 형식을 확인해주세요.', 'error');
+                    return;
+                }
+
+                // 데이터 저장
+                employeeData[currentEmployeeCompany][`week${currentWeek}`] = parsedData;
+
+                // 미리보기 표시
+                showPreview(parsedData);
+                
+                // 상태 업데이트
+                updateDataStatus();
+                
+                showToast(`✅ ${parsedData.length}명의 데이터가 저장되었습니다!`, 'success');
+
+            } catch (error) {
+                console.error(error);
+                showToast('데이터 파싱 중 오류가 발생했습니다: ' + error.message, 'error');
+            }
+        }
+
+        // 미리보기 표시
+        function showPreview(data) {
+            document.getElementById('totalRows').textContent = data.length;
+            
+            let html = '<table class="w-full text-left"><thead><tr class="bg-gray-100">';
+            html += '<th class="p-2">이름</th><th class="p-2">사업부</th><th class="p-2">본부</th><th class="p-2">지점</th><th class="p-2">월납보험료(만원)</th></tr></thead><tbody>';
+            
+            data.slice(0, 10).forEach(row => {
+                html += `<tr class="border-b">
+                    <td class="p-2">${row.name}</td>
+                    <td class="p-2">${row.dept}</td>
+                    <td class="p-2">${row.branch}</td>
+                    <td class="p-2">${row.office}</td>
+                    <td class="p-2 font-bold text-purple-600">${row.amount}</td>
+                </tr>`;
+            });
+            
+            if (data.length > 10) {
+                html += `<tr><td colspan="5" class="p-2 text-center text-gray-500">... 외 ${data.length - 10}명</td></tr>`;
+            }
+            
+            html += '</tbody></table>';
+            
+            document.getElementById('previewData').innerHTML = html;
+            document.getElementById('previewSection').style.display = 'block';
+        }
+
+        // 데이터 현황 업데이트
+        function updateDataStatus() {
+            let html = '';
+            
+            Object.keys(companyNames).forEach(company => {
+                const weekCounts = [
+                    (employeeData[company].week0 || []).length,
+                    (employeeData[company].week1 || []).length,
+                    (employeeData[company].week2 || []).length,
+                    (employeeData[company].week3 || []).length,
+                    (employeeData[company].week4 || []).length
+                ];
+                
+                const totalCount = weekCounts.reduce((a, b) => a + b, 0);
+                const bgColor = totalCount > 0 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200';
+                
+                html += `
+                    <div class="p-4 border-2 ${bgColor} rounded-xl">
+                        <h3 class="font-bold mb-2">${companyNames[company]}</h3>
+                        <div class="text-sm space-y-1">
+                            <div>전주차: <span class="font-bold ${weekCounts[0] > 0 ? 'text-blue-600' : 'text-gray-400'}">${weekCounts[0]}명</span></div>
+                            <div>1주차: <span class="font-bold ${weekCounts[1] > 0 ? 'text-green-600' : 'text-gray-400'}">${weekCounts[1]}명</span></div>
+                            <div>2주차: <span class="font-bold ${weekCounts[2] > 0 ? 'text-green-600' : 'text-gray-400'}">${weekCounts[2]}명</span></div>
+                            <div>3주차: <span class="font-bold ${weekCounts[3] > 0 ? 'text-green-600' : 'text-gray-400'}">${weekCounts[3]}명</span></div>
+                            <div>4주차: <span class="font-bold ${weekCounts[4] > 0 ? 'text-green-600' : 'text-gray-400'}">${weekCounts[4]}명</span></div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('dataStatus').innerHTML = html;
+        }
+
+        // 전체 인별 데이터 저장
+        function saveAllEmployeeData() {
+            localStorage.setItem('employee_data_v2', JSON.stringify(employeeData));
+            showToast('✅ 전체 인별 데이터가 저장되었습니다!', 'success');
+        }
+
+        // 인별 데이터 내보내기
+        function exportEmployeeData() {
+            const dataStr = JSON.stringify(employeeData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `인별업적데이터_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+            showToast('✅ 인별 데이터 파일이 다운로드되었습니다!', 'success');
+        }
+
+        // 인별 데이터 가져오기
+        function importEmployeeData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    employeeData = JSON.parse(e.target.result);
+                    localStorage.setItem('employee_data_v2', JSON.stringify(employeeData));
+                    showToast('✅ 인별 데이터를 불러왔습니다!', 'success');
+                    updateDataStatus();
+                } catch (error) {
+                    showToast('❌ 파일을 읽는 중 오류가 발생했습니다: ' + error.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // 전체 인별 데이터 초기화
+        function clearAllEmployeeData() {
+            if (!confirm('⚠️ 정말로 모든 인별 데이터를 초기화하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다!\n초기화 후 관리자 페이지에서 데이터를 다시 입력해야 합니다.')) {
+                return;
+            }
+            
+            if (!confirm('⚠️ 다시 한 번 확인합니다.\n모든 보험사의 모든 주차 데이터가 삭제됩니다.\n계속하시겠습니까?')) {
+                return;
+            }
+            
+            // employeeData 초기화
+            employeeData = {
+                db: { week0: [], week1: [], week2: [], week3: [], week4: [] },
+                heungkuk: { week0: [], week1: [], week2: [], week3: [], week4: [] },
+                meritz: { week0: [], week1: [], week2: [], week3: [], week4: [] },
+                kb: { week0: [], week1: [], week2: [], week3: [], week4: [] },
+                monthly: { week0: [], week1: [], week2: [], week3: [], week4: [] }
+            };
+            
+            // localStorage에 저장
+            localStorage.setItem('employee_data_v2', JSON.stringify(employeeData));
+            
+            // 화면 업데이트
+            updateDataStatus();
+            document.getElementById('searchResults').innerHTML = '<p class="text-gray-500 text-center py-8">데이터가 초기화되었습니다. 관리자 페이지에서 데이터를 다시 입력해주세요.</p>';
+            
+            showToast('✅ 모든 인별 데이터가 초기화되었습니다. 데이터를 다시 입력해주세요.', 'success');
+        }
+
+        // Toast 알림
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.background = type === 'success' ? '#10b981' : '#ef4444';
+            toast.style.display = 'block';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // 페이지 로드
+        window.addEventListener('load', function() {
+            // localStorage에서 데이터 로드
+            const savedEmployeeData = localStorage.getItem('employee_data_v2');
+            if (savedEmployeeData) {
+                try {
+                    const loadedData = JSON.parse(savedEmployeeData);
+                    // 데이터 마이그레이션: week0이 없으면 추가
+                    Object.keys(employeeData).forEach(company => {
+                        if (loadedData[company]) {
+                            if (!loadedData[company].week0) {
+                                loadedData[company].week0 = [];
+                            }
+                            employeeData[company] = loadedData[company];
+                        }
+                    });
+                } catch (error) {
+                    console.error('사원 데이터 로드 오류:', error);
+                }
+            }
+            
+            const savedPolicyData = localStorage.getItem('insurance_policy_data');
+            if (savedPolicyData) {
+                insuranceData = JSON.parse(savedPolicyData);
+                
+                // 백백천천 데이터가 없으면 기본값 추가
+                if (!insuranceData.db.baekbaek) {
+                    insuranceData.db.baekbaek = {
+                        50: 20, 100: 100, 200: 200, 300: 300, 400: 400,
+                        500: 500, 600: 600, 700: 700, 800: 800, 900: 900, 1000: 1000
+                    };
+                }
+                if (!insuranceData.heungkuk.baekbaek) {
+                    insuranceData.heungkuk.baekbaek = {
+                        50: 30, 100: 100, 200: 200, 300: 300, 400: 400,
+                        500: 500, 600: 600, 700: 700, 800: 800, 900: 900, 1000: 1000
+                    };
+                }
+                if (!insuranceData.kb.baekbaek) {
+                    insuranceData.kb.baekbaek = {
+                        50: 25, 100: 100, 200: 200, 300: 300, 400: 400,
+                        500: 500, 600: 600, 700: 700, 800: 800, 900: 900, 1000: 1000
+                    };
+                }
+                
+                // currentMonth가 없으면 기본값 추가
+                if (!insuranceData.currentMonth) {
+                    insuranceData.currentMonth = '2026년 1월';
+                }
+                
+                // dateRange가 없으면 기본값 추가 (모든 보험사)
+                const defaultDateRanges = {
+                    week1: '1/1~1/8',
+                    week2: '1/9~1/15',
+                    week3: '1/16~1/22',
+                    week4: '1/23~1/31'
+                };
+                
+                ['db', 'heungkuk', 'meritz', 'kb', 'monthly'].forEach(company => {
+                    if (insuranceData[company] && insuranceData[company].weekly) {
+                        for (let week of ['week1', 'week2', 'week3', 'week4']) {
+                            if (insuranceData[company].weekly[week] && !insuranceData[company].weekly[week].dateRange) {
+                                insuranceData[company].weekly[week].dateRange = defaultDateRanges[week];
+                            }
+                        }
+                    }
+                });
+                
+                // 업데이트된 데이터 다시 저장
+                localStorage.setItem('insurance_policy_data', JSON.stringify(insuranceData));
+                
+                // 이달주력사 이름 업데이트
+                if (insuranceData.monthly && insuranceData.monthly.displayName) {
+                    updateMonthlyCompanyName(insuranceData.monthly.displayName);
+                }
+            }
+            
+            updateHeaderMonth();
+            updateCurrentSelection();
+            updateDataStatus();
+            
+            console.log('✅ 보험사 시책 계산기 완전 통합 버전 로드 완료');
+        });
+    </script>
+
+</body>
+</html>
